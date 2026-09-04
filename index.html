@@ -96,7 +96,7 @@
                 catalogItems: [],
                 async init() {
                     try {
-                        const response = await fetch('Simple Fab Pictures.zip');
+                        const response = await fetch('Simple%20Fab%20Pictures.zip');
                         if (!response.ok) throw new Error('ZIP file not found in repository root');
                         const blob = await response.blob();
                         
