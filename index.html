@@ -42,7 +42,7 @@
         </div>
         <div class="text-xs font-mono text-amber-400/80 bg-neutral-900 border border-neutral-800 px-3 py-1.5 rounded-full flex items-center space-x-2">
             <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span>GitHub ZIP Auto-Sync</span>
+            <span>GitHub Auto-Sync Active</span>
         </div>
     </header>
 
@@ -71,7 +71,7 @@
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
-            <h3 class="font-serif text-xl font-medium text-neutral-100">Syncing Catalog From ZIP</h3>
+            <h3 class="font-serif text-xl font-medium text-neutral-100">Syncing Catalog From GitHub</h3>
             <p class="text-xs text-neutral-400 mt-2 mb-2" x-text="syncStatusText"></p>
             <p class="text-xs text-red-400 font-mono mt-1" x-text="errorMessage"></p>
             <div class="w-full bg-neutral-800 rounded-full h-3 overflow-hidden border border-neutral-700 mt-4">
@@ -196,22 +196,20 @@
                         if (!response.ok) throw new Error(`HTTP Error ${response.status}: ZIP file not found.`);
                         
                         this.syncProgress = 60;
-                        this.syncStatusText = 'Extracting all pictures from ZIP archive...';
+                        this.syncStatusText = 'Extracting pictures from ZIP archive...';
                         
                         const blob = await response.blob();
                         const zip = new JSZip();
                         const zipContent = await zip.loadAsync(blob);
                         
                         this.syncProgress = 85;
-                        this.syncStatusText = 'Processing image catalog...';
+                        this.syncStatusText = 'Building gown catalog...';
                         
                         const imageMap = {};
                         for (let filename of Object.keys(zipContent.files)) {
                             const zipEntry = zipContent.files[filename];
-                            // Skip directories and system hidden files (like __MACOSX or .DS_Store)
                             if (!zipEntry.dir && !filename.includes('__MACOSX') && !filename.includes('.DS_Store')) {
                                 const cleanName = filename.split('/').pop();
-                                // Check for valid image extensions case-insensitively
                                 if (/\.(png|jpg|jpeg|webp|gif)$/i.test(cleanName)) {
                                     const fileBlob = await zipEntry.async('blob');
                                     imageMap[cleanName] = URL.createObjectURL(fileBlob);
@@ -232,14 +230,12 @@
                 },
                 buildCatalog(imageMap) {
                     let items = [];
-                    // Exclude header/logo images if they reside in the root of the zip archive
                     const imageKeys = Object.keys(imageMap).filter(filename => {
                         const lower = filename.toLowerCase();
                         return !lower.includes('logo') && !lower.includes('banner');
                     });
 
                     if (imageKeys.length > 0) {
-                        // Sort naturally so item-1, item-2, item-10 are ordered properly
                         imageKeys.sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
                         
                         imageKeys.forEach((filename, index) => {
