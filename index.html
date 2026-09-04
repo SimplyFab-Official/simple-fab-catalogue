@@ -15,9 +15,13 @@
     <style>
         body { font-family: 'Inter', sans-serif; }
         .font-serif { font-family: 'Playfair Display', serif; }
-        img {
-            image-rendering: -webkit-optimize-contrast;
-            image-rendering: crisp-edges;
+        @keyframes marquee {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+        .animate-marquee {
+            display: inline-block;
+            animation: marquee 25s linear infinite;
         }
     </style>
 </head>
@@ -25,8 +29,8 @@
 
     <!-- Top Announcement Bar -->
     <div class="bg-amber-600/20 border-b border-amber-500/30 text-amber-300 text-xs py-2 px-4 text-center font-medium tracking-wider uppercase overflow-hidden whitespace-nowrap">
-        <div class="inline-block">
-            Official Facebook: facebook.com/simplyfab02 &bull; Call / Text / Viber / WhatsApp: 0995-483-6763
+        <div class="animate-marquee">
+            INQUIRE & RESERVE YOUR GOWN TODAY! &bull; CALL / SMS / VIBER / WHATSAPP: 0995-483-6763 &bull; OFFICIAL FACEBOOK PAGE: FACEBOOK.COM/SIMPLYFAB02
         </div>
     </div>
 
@@ -36,8 +40,12 @@
             <img src="LOGO.jpg" alt="Logo" class="w-10 h-10 rounded-full object-cover border border-amber-500/50">
             <h1 class="font-serif text-xl font-bold tracking-wide text-amber-100">Simple Fab 2.0</h1>
         </div>
-        <div class="text-xs text-amber-400 font-medium tracking-wider uppercase bg-amber-500/10 px-3 py-1.5 rounded-full border border-amber-500/20">
-            Auto-Syncing Active
+        <div>
+            <label class="cursor-pointer bg-neutral-800 hover:bg-neutral-700 border border-amber-500/40 text-amber-300 px-4 py-2 rounded-full text-xs font-semibold uppercase tracking-wider transition flex items-center space-x-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                <span>Upload Zip / Customize</span>
+                <input type="file" accept=".zip" class="hidden" @change="handleZipUpload($event)">
+            </label>
         </div>
     </header>
 
@@ -48,23 +56,26 @@
             <div class="absolute inset-0 z-0 opacity-40">
                 <img src="banner.jpg" alt="Banner" class="w-full h-full object-cover">
             </div>
-            <div class="relative z-10 p-8 md:p-16 max-w-2xl">
-                <span class="text-amber-400 text-xs font-semibold tracking-widest uppercase bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/20">Exclusive Haute Couture Gowns</span>
-                <h2 class="font-serif text-3xl md:text-5xl font-bold mt-4 mb-3 text-white leading-tight">Step Into Timeless Elegance</h2>
-                <p class="text-neutral-300 text-sm md:text-base font-light italic">"Look stunning. Feel beautiful. Discover breathtaking designer evening gowns crafted to make every celebration truly unforgettable."</p>
+            <div class="relative z-10 p-8 md:p-16 max-w-2xl flex flex-col md:flex-row md:items-center md:justify-between gap-6 w-full">
+                <div>
+                    <span class="text-amber-400 text-xs font-semibold tracking-widest uppercase bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/20">Exclusive Haute Couture Gowns</span>
+                    <h2 class="font-serif text-3xl md:text-5xl font-bold mt-4 mb-3 text-white leading-tight">Step Into Timeless Elegance</h2>
+                    <p class="text-neutral-300 text-sm md:text-base font-light italic">"Look stunning. Feel beautiful. Discover breathtaking designer evening gowns crafted to make every celebration truly unforgettable."</p>
+                </div>
+                <div class="w-full md:w-72">
+                    <input type="text" x-model="searchQuery" placeholder="Search curated gowns..." class="w-full bg-neutral-950/80 border border-neutral-700 rounded-full px-4 py-2.5 text-sm text-neutral-100 focus:outline-none focus:border-amber-500 placeholder-neutral-500">
+                </div>
             </div>
         </div>
 
-        <!-- Syncing Progress Indicator -->
-        <div x-show="!isLoaded" class="border border-dashed border-amber-500/40 rounded-2xl p-12 text-center bg-neutral-900/40 max-w-xl mx-auto shadow-2xl">
+        <!-- Loading / Syncing State -->
+        <div x-show="!isLoaded" class="border border-dashed border-amber-500/40 rounded-2xl p-12 text-center bg-neutral-900/40 max-w-xl mx-auto shadow-2xl my-12">
             <svg class="w-12 h-12 mx-auto text-amber-400 mb-4 animate-spin" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
             <h3 class="font-serif text-xl font-medium text-neutral-100">Syncing Gown Catalog</h3>
-            <p class="text-xs text-neutral-400 mt-2 mb-6">Automatically downloading and extracting repository assets...</p>
-            
-            <!-- Progress Bar -->
+            <p class="text-xs text-neutral-400 mt-2 mb-6">Automatically loading pictures from repository package...</p>
             <div class="w-full bg-neutral-800 rounded-full h-3 overflow-hidden border border-neutral-700">
                 <div class="bg-amber-500 h-full transition-all duration-300 rounded-full" :style="`width: ${syncProgress}%`"></div>
             </div>
@@ -73,16 +84,20 @@
 
         <!-- Products Grid Container -->
         <div x-show="isLoaded" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            <template x-for="item in catalogItems" :key="item.id">
+            <template x-for="item in filteredItems" :key="item.id">
                 <div class="bg-neutral-900 border border-neutral-800 rounded-xl overflow-hidden shadow-lg flex flex-col justify-between hover:border-amber-500/40 transition">
                     <div class="h-80 overflow-hidden bg-neutral-950 relative">
                         <img :src="item.imageSrc" :alt="item.name" class="w-full h-full object-cover object-top hover:scale-105 transition duration-500">
+                        <span class="absolute top-3 right-3 bg-neutral-900/80 backdrop-blur border border-amber-500/40 text-amber-300 text-[10px] font-semibold px-2.5 py-1 rounded tracking-widest uppercase">Gowns</span>
                     </div>
                     <div class="p-4 flex flex-col flex-grow justify-between">
                         <div>
-                            <span class="text-xs font-mono text-amber-400/80" x-text="item.code"></span>
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-mono text-amber-400/80" x-text="item.code"></span>
+                                <span class="text-xs font-semibold text-neutral-300 bg-neutral-800 px-2 py-0.5 rounded" x-text="item.size"></span>
+                            </div>
                             <h4 class="font-serif font-semibold text-lg text-neutral-100 mt-1" x-text="item.name"></h4>
-                            <p class="text-xs text-neutral-400 mt-1" x-text="item.specs"></p>
+                            <p class="text-xs text-neutral-400 mt-1" x-text="item.desc"></p>
                         </div>
                         <div class="mt-4 pt-3 border-t border-neutral-800 flex items-center justify-between">
                             <span class="text-amber-300 font-semibold text-sm" x-text="item.price"></span>
@@ -105,14 +120,23 @@
             return {
                 isLoaded: false,
                 syncProgress: 0,
+                searchQuery: '',
                 catalogItems: [],
+                get filteredItems() {
+                    if (!this.searchQuery) return this.catalogItems;
+                    return this.catalogItems.filter(item => 
+                        item.name.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+                        item.code.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+                        item.desc.toLowerCase().includes(this.searchQuery.toLowerCase())
+                    );
+                },
                 async init() {
                     try {
                         const response = await fetch('Simple%20Fab%20Pictures.zip');
-                        if (!response.ok) throw new Error('ZIP file not found in repository root');
+                        if (!response.ok) throw new Error('ZIP file not found');
                         
                         const contentLength = response.headers.get('content-length');
-                        const totalBytes = contentLength ? parseInt(contentLength, 10) : 98000000; // estimated fallback size (~94MB)
+                        const totalBytes = contentLength ? parseInt(contentLength, 10) : 94000000;
                         let loadedBytes = 0;
                         
                         const reader = response.body.getReader();
@@ -123,15 +147,11 @@
                             if (done) break;
                             chunks.push(value);
                             loadedBytes += value.length;
-                            
-                            // Calculate percentage
-                            let percent = Math.round((loadedBytes / totalBytes) * 100);
-                            this.syncProgress = Math.min(percent, 99); // Hold at 99% until extraction finishes
+                            this.syncProgress = Math.min(Math.round((loadedBytes / totalBytes) * 100), 99);
                         }
                         
                         this.syncProgress = 99;
                         const blob = new Blob(chunks);
-                        
                         const zip = new JSZip();
                         const zipContent = await zip.loadAsync(blob);
                         
@@ -146,7 +166,7 @@
                         
                         this.syncProgress = 100;
                         this.buildCatalog(imageMap);
-                        setTimeout(() => { this.isLoaded = true; }, 400);
+                        setTimeout(() => { this.isLoaded = true; }, 300);
                     } catch (error) {
                         console.log("Auto-fetch fallback triggered:", error);
                         this.buildFallbackCatalog();
@@ -162,9 +182,10 @@
                         
                         items.push({
                             id: i,
-                            code: `GOWN-${padded}`,
-                            name: `Designer Gown ${padded}`,
-                            specs: `Size: Standard / Custom Fit`,
+                            code: `Item ${padded}`,
+                            name: `Haute Couture Gown ${padded}`,
+                            size: `S-M`,
+                            desc: `Exquisite haute couture evening gown from the Simple Fab 2.0 collection`,
                             price: `PHP 1,899`,
                             imageSrc: imgUrl
                         });
@@ -177,14 +198,35 @@
                         let padded = String(i).padStart(3, '0');
                         items.push({
                             id: i,
-                            code: `GOWN-${padded}`,
+                            code: `Item ${padded}`,
                             name: `Haute Couture Gown ${padded}`,
-                            specs: `Size: S - L`,
+                            size: `S-M`,
+                            desc: `Exquisite haute couture evening gown from the Simple Fab 2.0 collection`,
                             price: `PHP 1,899`,
                             imageSrc: 'banner.jpg'
                         });
                     }
                     this.catalogItems = items;
+                },
+                async handleZipUpload(event) {
+                    const file = event.target.files[0];
+                    if (!file) return;
+                    try {
+                        const zip = new JSZip();
+                        const zipContent = await zip.loadAsync(file);
+                        const imageMap = {};
+                        for (let filename of Object.keys(zipContent.files)) {
+                            if (!zipContent.files[filename].dir) {
+                                const fileBlob = await zipContent.files[filename].async('blob');
+                                const cleanName = filename.split('/').pop();
+                                imageMap[cleanName] = URL.createObjectURL(fileBlob);
+                            }
+                        }
+                        this.buildCatalog(imageMap);
+                        this.isLoaded = true;
+                    } catch (err) {
+                        alert("Error reading uploaded ZIP file.");
+                    }
                 }
             }
         }
