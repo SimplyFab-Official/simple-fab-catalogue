@@ -40,8 +40,9 @@
             <img src="LOGO.jpg" alt="Logo" class="w-10 h-10 rounded-full object-cover border border-amber-500/50">
             <h1 class="font-serif text-xl font-bold tracking-wide text-amber-100">Simple Fab 2.0</h1>
         </div>
-        <div class="text-xs font-mono text-amber-400/80 bg-neutral-900 border border-neutral-800 px-3 py-1.5 rounded-full">
-            Catalog Linked to GitHub
+        <div class="text-xs font-mono text-amber-400/80 bg-neutral-900 border border-neutral-800 px-3 py-1.5 rounded-full flex items-center space-x-2">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span>GitHub Connected</span>
         </div>
     </header>
 
@@ -71,7 +72,7 @@
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
             <h3 class="font-serif text-xl font-medium text-neutral-100">Syncing Gown Catalog from GitHub</h3>
-            <p class="text-xs text-neutral-400 mt-2 mb-6">Automatically loading pictures package...</p>
+            <p class="text-xs text-neutral-400 mt-2 mb-6">Automatically extracting pictures from Simple Fab Pictures.zip...</p>
             <div class="w-full bg-neutral-800 rounded-full h-3 overflow-hidden border border-neutral-700">
                 <div class="bg-amber-500 h-full transition-all duration-300 rounded-full" :style="`width: ${syncProgress}%`"></div>
             </div>
@@ -121,9 +122,9 @@
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
             </button>
 
-            <!-- Zoomed Image Container with Pan/Scroll capability -->
+            <!-- Zoomable Image Container -->
             <div class="w-full md:w-3/5 bg-neutral-950 h-96 md:h-[80vh] overflow-auto flex items-center justify-center relative p-2">
-                <img :src="activeItem ? activeItem.imageSrc : ''" :alt="activeItem ? activeItem.name : ''" class="max-w-none w-auto h-auto min-h-full object-contain cursor-zoom-in" @click="toggleZoomState($event)">
+                <img :src="activeItem ? activeItem.imageSrc : ''" :alt="activeItem ? activeItem.name : ''" class="max-w-none w-auto h-auto min-h-full object-contain cursor-zoom-in transition-transform duration-300" @click="toggleZoomState($event)">
             </div>
 
             <!-- Item Info Panel -->
@@ -149,8 +150,8 @@
                 </div>
 
                 <div class="mt-8 pt-4 border-t border-neutral-800 flex space-x-3">
-                    <a :href="`https://m.me/simplyfab02`" target="_blank" class="flex-1 bg-amber-600 hover:bg-amber-500 text-neutral-950 font-semibold py-2.5 px-4 rounded-lg text-xs text-center transition uppercase tracking-wider">
-                        Inquire on Facebook
+                    <a href="https://m.me/simplyfab02" target="_blank" class="flex-1 bg-amber-600 hover:bg-amber-500 text-neutral-950 font-semibold py-2.5 px-4 rounded-lg text-xs text-center transition uppercase tracking-wider flex items-center justify-center space-x-2">
+                        <span>Inquire on Facebook</span>
                     </a>
                     <button @click="closeModal()" class="bg-neutral-800 hover:bg-neutral-700 text-neutral-300 font-medium py-2.5 px-4 rounded-lg text-xs transition">
                         Close
@@ -185,11 +186,12 @@
                 },
                 async init() {
                     try {
-                        const response = await fetch('Simple%20Fab%20Pictures.zip');
-                        if (!response.ok) throw new Error('ZIP file not found');
+                        const zipUrl = 'Simple%20Fab%20Pictures.zip';
+                        const response = await fetch(zipUrl);
+                        if (!response.ok) throw new Error('ZIP file not found on GitHub repository');
                         
                         const contentLength = response.headers.get('content-length');
-                        const totalBytes = contentLength ? parseInt(contentLength, 10) : 94000000;
+                        const totalBytes = contentLength ? parseInt(contentLength, 10) : 50000000;
                         let loadedBytes = 0;
                         
                         const reader = response.body.getReader();
@@ -221,16 +223,18 @@
                         this.buildCatalog(imageMap);
                         setTimeout(() => { this.isLoaded = true; }, 300);
                     } catch (error) {
-                        console.log("Auto-fetch fallback triggered:", error);
+                        console.log("GitHub auto-fetch error:", error);
                         this.buildFallbackCatalog();
                         this.isLoaded = true;
                     }
                 },
                 buildCatalog(imageMap) {
                     let items = [];
-                    // Extract all unique image filenames from the zip/imageMap automatically
+                    // Extract all valid image files from the GitHub zip
                     const imageKeys = Object.keys(imageMap).filter(filename => 
-                        /\.(png|jpg|jpeg|webp)$/i.test(filename) && filename.toLowerCase() !== 'logo.jpg' && filename.toLowerCase() !== 'banner.jpg'
+                        /\.(png|jpg|jpeg|webp)$/i.test(filename) && 
+                        filename.toLowerCase() !== 'logo.jpg' && 
+                        filename.toLowerCase() !== 'banner.jpg'
                     );
 
                     if (imageKeys.length > 0) {
@@ -250,18 +254,15 @@
                             });
                         });
                     } else {
-                        for (let i = 1; i <= 30; i++) {
+                        for (let i = 1; i <= 10; i++) {
                             let padded = String(i).padStart(3, '0');
-                            let fileName = `item-${padded}.png`;
-                            let imgUrl = imageMap[fileName] || imageMap[`item-${padded}.jpg`] || 'banner.jpg';
-                            
                             items.push({
                                 id: i,
                                 code: `Item ${padded}`,
                                 name: `Haute Couture Gown ${padded}`,
                                 size: `S-M`,
                                 desc: `Exquisite haute couture evening gown from the Simple Fab 2.0 collection`,
-                                imageSrc: imgUrl
+                                imageSrc: 'banner.jpg'
                             });
                         }
                     }
@@ -294,12 +295,12 @@
                 },
                 toggleZoomState(event) {
                     const img = event.target;
-                    if (img.classList.contains('scale-150')) {
-                        img.classList.remove('scale-150', 'cursor-zoom-out');
-                        img.classList.add('cursor-zoom-in');
+                    if (img.style.transform === 'scale(1.8)') {
+                        img.style.transform = 'scale(1)';
+                        img.style.cursor = 'zoom-in';
                     } else {
-                        img.classList.add('scale-150', 'cursor-zoom-out');
-                        img.classList.remove('cursor-zoom-in');
+                        img.style.transform = 'scale(1.8)';
+                        img.style.cursor = 'zoom-out';
                     }
                 }
             }
