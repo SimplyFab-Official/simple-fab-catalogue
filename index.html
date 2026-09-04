@@ -24,8 +24,10 @@
 <body class="bg-neutral-950 text-neutral-100 antialiased min-h-full flex flex-col justify-between" x-data="catalogApp()">
 
     <!-- Top Announcement Bar -->
-    <div class="bg-amber-600/20 border-b border-amber-500/30 text-amber-300 text-xs py-2 px-4 text-center font-medium tracking-wider uppercase">
-        Official Facebook: facebook.com/simplyfab02 &bull; Call / Text / Viber / WhatsApp: 0995-483-6763
+    <div class="bg-amber-600/20 border-b border-amber-500/30 text-amber-300 text-xs py-2 px-4 text-center font-medium tracking-wider uppercase overflow-hidden whitespace-nowrap">
+        <div class="inline-block animate-marquee">
+            Official Facebook: facebook.com/simplyfab02 &bull; Call / Text / Viber / WhatsApp: 0995-483-6763
+        </div>
     </div>
 
     <!-- Header / Navigation -->
@@ -96,7 +98,7 @@
                 catalogItems: [],
                 async init() {
                     try {
-                        const response = await fetch('Simple%20Fab%20Pictures.zip');
+                        const response = await fetch('Simple Fab Pictures.zip');
                         if (!response.ok) throw new Error('ZIP file not found in repository root');
                         const blob = await response.blob();
                         
