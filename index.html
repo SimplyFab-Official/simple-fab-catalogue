@@ -40,7 +40,7 @@
         </div>
         <div class="text-xs font-mono text-amber-400/80 bg-neutral-900 border border-neutral-800 px-3 py-1.5 rounded-full flex items-center space-x-2">
             <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span>Automatic GitHub Sync</span>
+            <span>Live GitHub Catalog</span>
         </div>
     </header>
 
@@ -70,7 +70,7 @@
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
             <h3 class="font-serif text-xl font-medium text-neutral-100">Loading Gown Catalog</h3>
-            <p class="text-xs text-neutral-400 mt-2">Syncing pictures from GitHub repository...</p>
+            <p class="text-xs text-neutral-400 mt-2">Displaying complete collection for customers...</p>
         </div>
 
         <!-- Products Grid Container -->
@@ -179,8 +179,8 @@
                 },
                 init() {
                     let items = [];
-                    // Automatically populates items assuming sequential naming in your GitHub repo (e.g., item-001.jpg)
-                    const totalItems = 30;
+                    // Increased limit to 250 items to safely capture all your pictures
+                    const totalItems = 250; 
                     for (let i = 1; i <= totalItems; i++) {
                         let padded = String(i).padStart(3, '0');
                         items.push({
