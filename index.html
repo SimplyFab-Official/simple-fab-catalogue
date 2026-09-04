@@ -34,12 +34,8 @@
             <img src="LOGO.jpg" alt="Logo" class="w-10 h-10 rounded-full object-cover border border-amber-500/50">
             <h1 class="font-serif text-xl font-bold tracking-wide text-amber-100">Simple Fab 2.0</h1>
         </div>
-        <div>
-            <label class="cursor-pointer bg-neutral-800 hover:bg-neutral-700 border border-amber-500/40 text-amber-300 px-4 py-2 rounded-full text-xs font-semibold uppercase tracking-wider transition flex items-center space-x-2">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-                <span>Upload Zip / Customize</span>
-                <input type="file" accept=".zip" class="hidden" @change="handleZipUpload($event)">
-            </label>
+        <div class="text-xs text-amber-400 font-medium tracking-wider uppercase bg-amber-500/10 px-3 py-1.5 rounded-full border border-amber-500/20">
+            Auto-Synced Catalog
         </div>
     </header>
 
@@ -57,11 +53,11 @@
             </div>
         </div>
 
-        <!-- Catalog Status / Grid -->
+        <!-- Loading State -->
         <div x-show="!isLoaded" class="border border-dashed border-neutral-700 rounded-2xl p-12 text-center bg-neutral-900/40">
-            <svg class="w-12 h-12 mx-auto text-amber-500/50 mb-4 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+            <svg class="w-12 h-12 mx-auto text-amber-500/50 mb-4 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
             <h3 class="font-serif text-xl font-medium text-neutral-200">Loading Gown Catalog...</h3>
-            <p class="text-xs text-neutral-400 mt-2">Syncing image assets automatically from repository package.</p>
+            <p class="text-xs text-neutral-400 mt-2">Fetching pictures automatically from repository package.</p>
         </div>
 
         <!-- Products Grid Container -->
@@ -100,7 +96,6 @@
                 catalogItems: [],
                 async init() {
                     try {
-                        // Automatically fetch the ZIP file from repository
                         const response = await fetch('Simple Fab Pictures.zip');
                         if (!response.ok) throw new Error('ZIP file not found in repository root');
                         const blob = await response.blob();
@@ -112,7 +107,6 @@
                         for (let filename of Object.keys(zipContent.files)) {
                             if (!zipContent.files[filename].dir) {
                                 const fileBlob = await zipContent.files[filename].async('blob');
-                                // Clean up path to match just filename
                                 const cleanName = filename.split('/').pop();
                                 imageMap[cleanName] = URL.createObjectURL(fileBlob);
                             }
@@ -122,7 +116,6 @@
                         this.isLoaded = true;
                     } catch (error) {
                         console.log("Auto-fetch fallback triggered:", error);
-                        // Fallback sample data if offline or zip path missing
                         this.buildFallbackCatalog();
                         this.isLoaded = true;
                     }
@@ -132,7 +125,6 @@
                     for (let i = 1; i <= 30; i++) {
                         let padded = String(i).padStart(3, '0');
                         let fileName = `item-${padded}.png`;
-                        // Fallback to jpg if png missing
                         let imgUrl = imageMap[fileName] || imageMap[`item-${padded}.jpg`] || 'banner.jpg';
                         
                         items.push({
@@ -160,26 +152,6 @@
                         });
                     }
                     this.catalogItems = items;
-                },
-                async handleZipUpload(event) {
-                    const file = event.target.files[0];
-                    if (!file) return;
-                    try {
-                        const zip = new JSZip();
-                        const zipContent = await zip.loadAsync(file);
-                        const imageMap = {};
-                        for (let filename of Object.keys(zipContent.files)) {
-                            if (!zipContent.files[filename].dir) {
-                                const fileBlob = await zipContent.files[filename].async('blob');
-                                const cleanName = filename.split('/').pop();
-                                imageMap[cleanName] = URL.createObjectURL(fileBlob);
-                            }
-                        }
-                        this.buildCatalog(imageMap);
-                        this.isLoaded = true;
-                    } catch (err) {
-                        alert("Error reading uploaded ZIP file.");
-                    }
                 }
             }
         }
