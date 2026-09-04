@@ -8,8 +8,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Alpine.js -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <!-- JSZip for ZIP extraction -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <!-- Google Fonts: Playfair Display & Inter -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
     <style>
@@ -42,7 +40,7 @@
         </div>
         <div class="text-xs font-mono text-amber-400/80 bg-neutral-900 border border-neutral-800 px-3 py-1.5 rounded-full flex items-center space-x-2">
             <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span>GitHub Connected</span>
+            <span>GitHub Folder Source Active</span>
         </div>
     </header>
 
@@ -65,18 +63,14 @@
             </div>
         </div>
 
-        <!-- Loading / Syncing State -->
+        <!-- Loading State -->
         <div x-show="!isLoaded" class="border border-dashed border-amber-500/40 rounded-2xl p-12 text-center bg-neutral-900/40 max-w-xl mx-auto shadow-2xl my-12">
             <svg class="w-12 h-12 mx-auto text-amber-400 mb-4 animate-spin" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
-            <h3 class="font-serif text-xl font-medium text-neutral-100">Syncing Gown Catalog from GitHub</h3>
-            <p class="text-xs text-neutral-400 mt-2 mb-6">Automatically extracting pictures from Simple Fab Pictures.zip...</p>
-            <div class="w-full bg-neutral-800 rounded-full h-3 overflow-hidden border border-neutral-700">
-                <div class="bg-amber-500 h-full transition-all duration-300 rounded-full" :style="`width: ${syncProgress}%`"></div>
-            </div>
-            <p class="text-sm font-mono text-amber-400 mt-3" x-text="`${syncProgress}% Synchronized`"></p>
+            <h3 class="font-serif text-xl font-medium text-neutral-100">Loading Gown Catalog</h3>
+            <p class="text-xs text-neutral-400 mt-2">Loading pictures from Simply Fab Pictures folder...</p>
         </div>
 
         <!-- Products Grid Container -->
@@ -84,7 +78,7 @@
             <template x-for="item in filteredItems" :key="item.id">
                 <div class="bg-neutral-900 border border-neutral-800 rounded-xl overflow-hidden shadow-lg flex flex-col justify-between hover:border-amber-500/40 transition">
                     <div class="h-80 overflow-hidden bg-neutral-950 relative cursor-pointer group" @click="openModal(item)">
-                        <img :src="item.imageSrc" :alt="item.name" class="w-full h-full object-cover object-top group-hover:scale-105 transition duration-500">
+                        <img :src="item.imageSrc" :alt="item.name" class="w-full h-full object-cover object-top group-hover:scale-105 transition duration-500" loading="lazy">
                         <span class="absolute top-3 right-3 bg-neutral-900/80 backdrop-blur border border-amber-500/40 text-amber-300 text-[10px] font-semibold px-2.5 py-1 rounded tracking-widest uppercase">Gowns</span>
                         <!-- Zoom helper overlay on hover -->
                         <div class="absolute inset-0 bg-neutral-950/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
@@ -171,7 +165,6 @@
         function catalogApp() {
             return {
                 isLoaded: false,
-                syncProgress: 0,
                 searchQuery: '',
                 catalogItems: [],
                 modalOpen: false,
@@ -184,93 +177,12 @@
                         item.desc.toLowerCase().includes(this.searchQuery.toLowerCase())
                     );
                 },
-                async init() {
-                    try {
-                        const zipUrl = 'Simple%20Fab%20Pictures.zip';
-                        const response = await fetch(zipUrl);
-                        if (!response.ok) throw new Error('ZIP file not found on GitHub repository');
-                        
-                        const contentLength = response.headers.get('content-length');
-                        const totalBytes = contentLength ? parseInt(contentLength, 10) : 50000000;
-                        let loadedBytes = 0;
-                        
-                        const reader = response.body.getReader();
-                        const chunks = [];
-                        
-                        while (true) {
-                            const { done, value } = await reader.read();
-                            if (done) break;
-                            chunks.push(value);
-                            loadedBytes += value.length;
-                            this.syncProgress = Math.min(Math.round((loadedBytes / totalBytes) * 100), 99);
-                        }
-                        
-                        this.syncProgress = 99;
-                        const blob = new Blob(chunks);
-                        const zip = new JSZip();
-                        const zipContent = await zip.loadAsync(blob);
-                        
-                        const imageMap = {};
-                        for (let filename of Object.keys(zipContent.files)) {
-                            if (!zipContent.files[filename].dir) {
-                                const fileBlob = await zipContent.files[filename].async('blob');
-                                const cleanName = filename.split('/').pop();
-                                imageMap[cleanName] = URL.createObjectURL(fileBlob);
-                            }
-                        }
-                        
-                        this.syncProgress = 100;
-                        this.buildCatalog(imageMap);
-                        setTimeout(() => { this.isLoaded = true; }, 300);
-                    } catch (error) {
-                        console.log("GitHub auto-fetch error:", error);
-                        this.buildFallbackCatalog();
-                        this.isLoaded = true;
-                    }
-                },
-                buildCatalog(imageMap) {
+                init() {
                     let items = [];
-                    // Extract all valid image files from the GitHub zip
-                    const imageKeys = Object.keys(imageMap).filter(filename => 
-                        /\.(png|jpg|jpeg|webp)$/i.test(filename) && 
-                        filename.toLowerCase() !== 'logo.jpg' && 
-                        filename.toLowerCase() !== 'banner.jpg'
-                    );
-
-                    if (imageKeys.length > 0) {
-                        imageKeys.sort();
-                        imageKeys.forEach((filename, index) => {
-                            let id = index + 1;
-                            let padded = String(id).padStart(3, '0');
-                            let baseName = filename.substring(0, filename.lastIndexOf('.')) || filename;
-                            
-                            items.push({
-                                id: id,
-                                code: `Item ${padded}`,
-                                name: `Haute Couture Gown ${baseName}`,
-                                size: `S-M`,
-                                desc: `Exquisite haute couture evening gown from the Simple Fab 2.0 collection`,
-                                imageSrc: imageMap[filename]
-                            });
-                        });
-                    } else {
-                        for (let i = 1; i <= 10; i++) {
-                            let padded = String(i).padStart(3, '0');
-                            items.push({
-                                id: i,
-                                code: `Item ${padded}`,
-                                name: `Haute Couture Gown ${padded}`,
-                                size: `S-M`,
-                                desc: `Exquisite haute couture evening gown from the Simple Fab 2.0 collection`,
-                                imageSrc: 'banner.jpg'
-                            });
-                        }
-                    }
-                    this.catalogItems = items;
-                },
-                buildFallbackCatalog() {
-                    let items = [];
-                    for (let i = 1; i <= 10; i++) {
+                    // Automatically builds catalog paths based on your unzipped folder name on GitHub
+                    // Adjust totalItems count to match the number of pictures inside your folder
+                    const totalItems = 30; 
+                    for (let i = 1; i <= totalItems; i++) {
                         let padded = String(i).padStart(3, '0');
                         items.push({
                             id: i,
@@ -278,10 +190,11 @@
                             name: `Haute Couture Gown ${padded}`,
                             size: `S-M`,
                             desc: `Exquisite haute couture evening gown from the Simple Fab 2.0 collection`,
-                            imageSrc: 'banner.jpg'
+                            imageSrc: `Simply%20Fab%20Pictures/item-${padded}.jpg`
                         });
                     }
                     this.catalogItems = items;
+                    this.isLoaded = true;
                 },
                 openModal(item) {
                     this.activeItem = item;
