@@ -78,7 +78,7 @@
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
             <h3 class="font-serif text-xl font-medium text-neutral-900">Loading Catalog</h3>
-            <p class="text-xs text-neutral-500 mt-2">Matching unique prices to each picture...</p>
+            <p class="text-xs text-neutral-500 mt-2">Preparing high-definition studio views...</p>
         </div>
 
         <!-- Products Grid Container -->
@@ -87,11 +87,9 @@
                 <div class="bg-white border border-rose-100 rounded-xl overflow-hidden shadow-md flex flex-col justify-between hover:border-rose-300 transition">
                     <div class="h-80 overflow-hidden bg-rose-50 relative cursor-pointer group" @click="openModal(item)">
                         <img :src="item.imageSrc" @error="item.imageSrc = 'banner.jpg'" :alt="item.name" class="w-full h-full object-cover object-top group-hover:scale-105 transition duration-500" loading="lazy">
-                        <!-- Lower Right Tag matching the exact picture design & unique price -->
-                        <div class="absolute bottom-3 right-3 bg-neutral-900/90 backdrop-blur border border-rose-400/50 text-amber-300 px-3 py-1 rounded text-xs font-bold tracking-wide shadow-lg flex items-center space-x-1.5">
+                        <!-- Lower Right Tag showing item code only -->
+                        <div class="absolute bottom-3 right-3 bg-neutral-900/80 backdrop-blur border border-rose-400/40 text-amber-300 px-3 py-1 rounded text-xs font-bold tracking-wide shadow-md">
                             <span x-text="item.code"></span>
-                            <span class="text-neutral-500">|</span>
-                            <span class="text-emerald-300" x-text="item.price"></span>
                         </div>
                         <!-- Preview overlay on hover -->
                         <div class="absolute inset-0 bg-neutral-900/30 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
@@ -105,7 +103,7 @@
                         <div>
                             <div class="flex items-center justify-between">
                                 <span class="text-xs font-mono text-rose-700 font-bold" x-text="item.code"></span>
-                                <span class="text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded shadow-sm" x-text="item.price"></span>
+                                <span class="text-xs font-semibold text-rose-800 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded">Inquire for Price</span>
                             </div>
                             <h4 class="font-serif font-semibold text-lg text-neutral-900 mt-1" x-text="item.name"></h4>
                             <p class="text-xs text-neutral-500 mt-1" x-text="item.desc"></p>
@@ -142,7 +140,7 @@
                 <div>
                     <div class="flex items-center justify-between mb-3">
                         <span class="text-xs font-mono text-rose-700 bg-rose-50 px-2.5 py-1 rounded border border-rose-200 font-semibold" x-text="activeItem ? activeItem.code : ''"></span>
-                        <span class="text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded shadow-sm" x-text="activeItem ? activeItem.price : ''"></span>
+                        <span class="text-xs font-semibold text-rose-800 bg-rose-50 border border-rose-200 px-2.5 py-1 rounded">Price upon inquiry</span>
                     </div>
                     <h3 class="font-serif text-2xl font-bold text-neutral-900 mt-2" x-text="activeItem ? activeItem.name : ''"></h3>
                     <p class="text-xs text-neutral-500 mt-3 leading-relaxed" x-text="activeItem ? activeItem.desc : ''"></p>
@@ -185,7 +183,7 @@
                             <img :src="item.imageSrc" class="w-12 h-12 object-cover rounded border border-rose-200">
                             <div>
                                 <h4 class="text-sm font-semibold text-neutral-900" x-text="item.code"></h4>
-                                <p class="text-xs text-emerald-700 font-medium" x-text="item.price"></p>
+                                <p class="text-xs text-rose-700 font-medium">Ready for quotation</p>
                             </div>
                         </div>
                         <button @click="removeFromCart(index)" class="text-rose-600 hover:text-rose-800 text-xs px-2 py-1 font-semibold">Remove</button>
@@ -252,19 +250,12 @@
                         ? '/simple-fab-catalogue/' 
                         : './';
 
-                    // Unique pricing table mapping a distinct PHP price directly corresponding to each item code sequence
                     for (let i = 1; i <= totalItems; i++) {
                         let padded = String(i).padStart(3, '0');
-                        
-                        // Generates an exact unique price matching each image index organically (e.g. PHP 2,800 to PHP 5,500)
-                        let baseAmount = 2500 + ((i * 137) % 31) * 100;
-                        let assignedPrice = `PHP ${baseAmount.toLocaleString()}`;
-
                         items.push({
                             id: i,
                             code: `Item ${padded}`,
                             name: `Haute Couture Gown ${padded}`,
-                            price: assignedPrice,
                             size: `S-M`,
                             desc: `Exquisite haute couture evening gown from the Simple Fab 2.0 collection`,
                             imageSrc: `${basePath}item-${padded}.png`
@@ -287,7 +278,7 @@
                 toggleModalZoom(event) {
                     const img = event.target;
                     if (img.style.transform === 'scale(2)') {
-                        img.style.transform = 'scale(1);';
+                        img.style.transform = 'scale(1)';
                         img.style.cursor = 'zoom-in';
                     } else {
                         img.style.transform = 'scale(2)';
@@ -310,7 +301,7 @@
 
                     let message = `Hello Simple Fab 2.0! I would like to inquire/reserve the following items from your catalog:\n\n`;
                     this.checklist.forEach((item, index) => {
-                        message += `${index + 1}. ${item.code} - ${item.name} (${item.price})\n`;
+                        message += `${index + 1}. ${item.code} - ${item.name}\n`;
                     });
                     message += `\nCustomer Name: ${this.customerName}\nContact Number: ${this.customerPhone}`;
 
