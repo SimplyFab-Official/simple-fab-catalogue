@@ -8,8 +8,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Alpine.js -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <!-- JSZip for ZIP extraction -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <!-- Google Fonts: Playfair Display & Inter -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
     <style>
@@ -42,7 +40,7 @@
         </div>
         <div class="text-xs font-mono text-amber-400/80 bg-neutral-900 border border-neutral-800 px-3 py-1.5 rounded-full flex items-center space-x-2">
             <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span>GitHub Auto-Sync Active</span>
+            <span>Automatic GitHub Sync</span>
         </div>
     </header>
 
@@ -65,19 +63,14 @@
             </div>
         </div>
 
-        <!-- Loading / Syncing State -->
+        <!-- Loading State -->
         <div x-show="!isLoaded" class="border border-dashed border-amber-500/40 rounded-2xl p-12 text-center bg-neutral-900/40 max-w-xl mx-auto shadow-2xl my-12">
             <svg class="w-12 h-12 mx-auto text-amber-400 mb-4 animate-spin" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
-            <h3 class="font-serif text-xl font-medium text-neutral-100">Syncing Catalog From GitHub</h3>
-            <p class="text-xs text-neutral-400 mt-2 mb-2" x-text="syncStatusText"></p>
-            <p class="text-xs text-red-400 font-mono mt-1" x-text="errorMessage"></p>
-            <div class="w-full bg-neutral-800 rounded-full h-3 overflow-hidden border border-neutral-700 mt-4">
-                <div class="bg-amber-500 h-full transition-all duration-300 rounded-full" :style="`width: ${syncProgress}%`"></div>
-            </div>
-            <p class="text-sm font-mono text-amber-400 mt-3" x-text="`${syncProgress}% Synchronized`"></p>
+            <h3 class="font-serif text-xl font-medium text-neutral-100">Loading Gown Catalog</h3>
+            <p class="text-xs text-neutral-400 mt-2">Syncing pictures from GitHub repository...</p>
         </div>
 
         <!-- Products Grid Container -->
@@ -172,9 +165,6 @@
         function catalogApp() {
             return {
                 isLoaded: false,
-                syncProgress: 10,
-                syncStatusText: 'Connecting to GitHub repository...',
-                errorMessage: '',
                 searchQuery: '',
                 catalogItems: [],
                 modalOpen: false,
@@ -187,79 +177,11 @@
                         item.desc.toLowerCase().includes(this.searchQuery.toLowerCase())
                     );
                 },
-                async init() {
-                    try {
-                        this.syncProgress = 30;
-                        this.syncStatusText = 'Fetching Simple Fab Pictures.zip from GitHub...';
-                        
-                        const response = await fetch('Simple%20Fab%20Pictures.zip');
-                        if (!response.ok) throw new Error(`HTTP Error ${response.status}: ZIP file not found.`);
-                        
-                        this.syncProgress = 60;
-                        this.syncStatusText = 'Extracting pictures from ZIP archive...';
-                        
-                        const blob = await response.blob();
-                        const zip = new JSZip();
-                        const zipContent = await zip.loadAsync(blob);
-                        
-                        this.syncProgress = 85;
-                        this.syncStatusText = 'Building gown catalog...';
-                        
-                        const imageMap = {};
-                        for (let filename of Object.keys(zipContent.files)) {
-                            const zipEntry = zipContent.files[filename];
-                            if (!zipEntry.dir && !filename.includes('__MACOSX') && !filename.includes('.DS_Store')) {
-                                const cleanName = filename.split('/').pop();
-                                if (/\.(png|jpg|jpeg|webp|gif)$/i.test(cleanName)) {
-                                    const fileBlob = await zipEntry.async('blob');
-                                    imageMap[cleanName] = URL.createObjectURL(fileBlob);
-                                }
-                            }
-                        }
-                        
-                        this.syncProgress = 100;
-                        this.buildCatalog(imageMap);
-                        setTimeout(() => { this.isLoaded = true; }, 300);
-                    } catch (error) {
-                        console.error("ZIP auto-extraction error:", error);
-                        this.errorMessage = error.message;
-                        this.syncStatusText = 'ZIP fetch failed. Loading fallback catalog...';
-                        this.buildFallbackCatalog();
-                        setTimeout(() => { this.isLoaded = true; }, 1000);
-                    }
-                },
-                buildCatalog(imageMap) {
+                init() {
                     let items = [];
-                    const imageKeys = Object.keys(imageMap).filter(filename => {
-                        const lower = filename.toLowerCase();
-                        return !lower.includes('logo') && !lower.includes('banner');
-                    });
-
-                    if (imageKeys.length > 0) {
-                        imageKeys.sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
-                        
-                        imageKeys.forEach((filename, index) => {
-                            let id = index + 1;
-                            let padded = String(id).padStart(3, '0');
-                            let baseName = filename.substring(0, filename.lastIndexOf('.')) || filename;
-                            
-                            items.push({
-                                id: id,
-                                code: `Item ${padded}`,
-                                name: `Haute Couture Gown (${baseName})`,
-                                size: `S-M`,
-                                desc: `Exquisite haute couture evening gown from the Simple Fab 2.0 collection`,
-                                imageSrc: imageMap[filename]
-                            });
-                        });
-                    } else {
-                        this.buildFallbackCatalog();
-                    }
-                    this.catalogItems = items;
-                },
-                buildFallbackCatalog() {
-                    let items = [];
-                    for (let i = 1; i <= 10; i++) {
+                    // Automatically populates items assuming sequential naming in your GitHub repo (e.g., item-001.jpg)
+                    const totalItems = 30;
+                    for (let i = 1; i <= totalItems; i++) {
                         let padded = String(i).padStart(3, '0');
                         items.push({
                             id: i,
@@ -267,10 +189,11 @@
                             name: `Haute Couture Gown ${padded}`,
                             size: `S-M`,
                             desc: `Exquisite haute couture evening gown from the Simple Fab 2.0 collection`,
-                            imageSrc: 'banner.jpg'
+                            imageSrc: `item-${padded}.jpg`
                         });
                     }
                     this.catalogItems = items;
+                    this.isLoaded = true;
                 },
                 openModal(item) {
                     this.activeItem = item;
