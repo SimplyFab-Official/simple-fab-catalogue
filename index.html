@@ -196,21 +196,24 @@
                         if (!response.ok) throw new Error(`HTTP Error ${response.status}: ZIP file not found.`);
                         
                         this.syncProgress = 60;
-                        this.syncStatusText = 'Extracting images from ZIP archive...';
+                        this.syncStatusText = 'Extracting all pictures from ZIP archive...';
                         
                         const blob = await response.blob();
                         const zip = new JSZip();
                         const zipContent = await zip.loadAsync(blob);
                         
                         this.syncProgress = 85;
-                        this.syncStatusText = 'Building gown catalog...';
+                        this.syncStatusText = 'Processing image catalog...';
                         
                         const imageMap = {};
                         for (let filename of Object.keys(zipContent.files)) {
-                            if (!zipContent.files[filename].dir) {
-                                const fileBlob = await zipContent.files[filename].async('blob');
+                            const zipEntry = zipContent.files[filename];
+                            // Skip directories and system hidden files (like __MACOSX or .DS_Store)
+                            if (!zipEntry.dir && !filename.includes('__MACOSX') && !filename.includes('.DS_Store')) {
                                 const cleanName = filename.split('/').pop();
-                                if (/\.(png|jpg|jpeg|webp)$/i.test(cleanName)) {
+                                // Check for valid image extensions case-insensitively
+                                if (/\.(png|jpg|jpeg|webp|gif)$/i.test(cleanName)) {
+                                    const fileBlob = await zipEntry.async('blob');
                                     imageMap[cleanName] = URL.createObjectURL(fileBlob);
                                 }
                             }
@@ -229,13 +232,16 @@
                 },
                 buildCatalog(imageMap) {
                     let items = [];
-                    const imageKeys = Object.keys(imageMap).filter(filename => 
-                        filename.toLowerCase() !== 'logo.jpg' && 
-                        filename.toLowerCase() !== 'banner.jpg'
-                    );
+                    // Exclude header/logo images if they reside in the root of the zip archive
+                    const imageKeys = Object.keys(imageMap).filter(filename => {
+                        const lower = filename.toLowerCase();
+                        return !lower.includes('logo') && !lower.includes('banner');
+                    });
 
                     if (imageKeys.length > 0) {
-                        imageKeys.sort();
+                        // Sort naturally so item-1, item-2, item-10 are ordered properly
+                        imageKeys.sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
+                        
                         imageKeys.forEach((filename, index) => {
                             let id = index + 1;
                             let padded = String(id).padStart(3, '0');
@@ -244,7 +250,7 @@
                             items.push({
                                 id: id,
                                 code: `Item ${padded}`,
-                                name: `Haute Couture Gown ${baseName}`,
+                                name: `Haute Couture Gown (${baseName})`,
                                 size: `S-M`,
                                 desc: `Exquisite haute couture evening gown from the Simple Fab 2.0 collection`,
                                 imageSrc: imageMap[filename]
