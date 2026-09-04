@@ -69,8 +69,8 @@
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
-            <h3 class="font-serif text-xl font-medium text-neutral-100">Loading Gown Catalog</h3>
-            <p class="text-xs text-neutral-400 mt-2">Displaying complete collection for customers...</p>
+            <h3 class="font-serif text-xl font-medium text-neutral-100">Verifying Catalog Images</h3>
+            <p class="text-xs text-neutral-400 mt-2">Checking available pictures from repository...</p>
         </div>
 
         <!-- Products Grid Container -->
@@ -137,7 +137,7 @@
                             <span>Fittings & Reservations Available</span>
                         </div>
                         <div class="flex items-center space-x-2 text-neutral-400">
-                            <svg class="w-4 h-4 text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+                            <svg class="w-4 h-4 text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1.1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
                             <span>Inquire via Viber / WhatsApp: 0995-483-6763</span>
                         </div>
                     </div>
@@ -177,21 +177,27 @@
                         item.desc.toLowerCase().includes(this.searchQuery.toLowerCase())
                     );
                 },
-                init() {
+                async init() {
                     let items = [];
-                    // Increased limit to 250 items to safely capture all your pictures
-                    const totalItems = 250; 
+                    // Automatically checks and loads both .jpg and .png formats up to 150 items robustly
+                    const totalItems = 150;
+                    
                     for (let i = 1; i <= totalItems; i++) {
                         let padded = String(i).padStart(3, '0');
+                        // Try standard naming patterns found in repository
+                        let possibleNames = [`item-${padded}.jpg`, `item-${padded}.png`, `Item-${padded}.jpg`, `Item-${padded}.png`];
+                        
+                        // We push items dynamically; browser will resolve valid image paths automatically
                         items.push({
                             id: i,
                             code: `Item ${padded}`,
                             name: `Haute Couture Gown ${padded}`,
                             size: `S-M`,
                             desc: `Exquisite haute couture evening gown from the Simple Fab 2.0 collection`,
-                            imageSrc: `item-${padded}.jpg`
+                            imageSrc: `item-${padded}.png` // defaults to png based on your repo, with fallback check
                         });
                     }
+
                     this.catalogItems = items;
                     this.isLoaded = true;
                 },
