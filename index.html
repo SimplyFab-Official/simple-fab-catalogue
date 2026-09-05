@@ -53,11 +53,11 @@
             <div class="relative z-10 p-8 md:p-14 max-w-3xl flex flex-col md:flex-row md:items-center md:justify-between gap-6 w-full">
                 <div>
                     <span class="text-rose-700 text-xs font-semibold tracking-widest uppercase bg-rose-100 px-3 py-1 rounded-full border border-rose-200 shadow-sm">Exclusive Haute Couture Gowns</span>
-                    <h2 class="font-serif text-3xl md:text-5xl font-bold mt-4 mb-3 text-neutral-900 leading-tight">Step Into Timeless Elegance</h2>
+                    <h2 class="font-serif text-3xl md:text-5xl font-bold mt-4 mb-3 text-white leading-tight">Step Into Timeless Elegance</h2>
                     <p class="text-neutral-600 text-sm md:text-base font-light italic">"Look stunning. Feel beautiful. Discover breathtaking designer evening gowns crafted to make every celebration truly unforgettable."</p>
                 </div>
                 <div class="w-full md:w-72">
-                    <input type="text" x-model="searchQuery" placeholder="Search curated gowns..." class="w-full bg-white border border-rose-200 rounded-full px-4 py-2.5 text-sm text-neutral-800 focus:outline-none focus:border-rose-400 placeholder-neutral-400 shadow-sm">
+                    <input type="text" x-model="searchQuery" placeholder="Search by item number or keyword..." class="w-full bg-white border border-rose-200 rounded-full px-4 py-2.5 text-sm text-neutral-800 focus:outline-none focus:border-rose-400 placeholder-neutral-400 shadow-sm">
                 </div>
             </div>
         </div>
@@ -71,7 +71,13 @@
             <p class="text-xs text-neutral-500 mt-2">Displaying complete collection for customers...</p>
         </div>
 
-        <div x-show="isLoaded" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div x-show="isLoaded && filteredItems.length === 0" class="border border-dashed border-rose-300 rounded-2xl p-12 text-center bg-white/60 backdrop-blur-sm max-w-md mx-auto shadow-sm my-12">
+            <svg class="w-10 h-10 mx-auto text-rose-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            <h4 class="font-serif text-lg font-medium text-neutral-900">No Gown Found</h4>
+            <p class="text-xs text-neutral-500 mt-1">No items matched your search query. Try searching with a number like "001" or keywords.</p>
+        </div>
+
+        <div x-show="isLoaded && filteredItems.length > 0" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             <template x-for="item in filteredItems" :key="item.id">
                 <div class="bg-white/95 backdrop-blur-md border border-rose-100 rounded-xl overflow-hidden shadow-md flex flex-col justify-between hover:border-rose-300 hover:shadow-xl transition duration-300 group">
                     <div class="h-80 overflow-hidden bg-rose-50/50 relative cursor-pointer flex items-center justify-center p-3" @click="openModal(item)">
@@ -123,7 +129,7 @@
             <div class="w-full md:w-3/5 bg-neutral-950 h-[50vh] md:h-full overflow-auto flex items-center justify-center relative p-4 select-none">
                 <template x-if="activeItem && !activeItem.isMissing">
                     <div class="w-full h-full flex items-center justify-center overflow-auto cursor-zoom-in" @click="toggleZoomState($event)">
-                        <img :src="activeItem.imageSrc" :alt="activeItem.name" class="transition-transform duration-300 origin-center" :class="isZoomed ? 'scale-150 cursor-zoom-out max-w-none max-h-none' : 'max-w-full max-h-full object-cover cursor-zoom-in rounded'">
+                        <img :src="activeItem.imageSrc" :alt="activeItem.name" class="transition-transform duration-300 origin-center" :class="isZoomed ? 'scale-150 cursor-zoom-out max-w-none max-h-none' : 'max-w-full max-h-full object-cover cursor-zoom-in'">
                     </div>
                 </template>
                 <template x-if="activeItem && activeItem.isMissing">
@@ -137,7 +143,7 @@
                 </template>
                 <div class="absolute bottom-4 left-4 bg-neutral-950/90 backdrop-blur text-white text-[11px] px-3.5 py-1.5 rounded-full border border-neutral-700 pointer-events-none shadow-lg flex items-center space-x-1.5">
                     <svg class="w-3.5 h-3.5 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"/></svg>
-                    <span x-text="isZoomed ? 'Click to Reset View' : 'Click Photo to Zoom In (1.5x)'"></span>
+                    <span x-text="isZoomed ? 'Click to Fit View' : 'Click Photo to Zoom In (1.5x)'"></span>
                 </div>
             </div>
 
@@ -190,11 +196,21 @@
                 },
                 get filteredItems() {
                     if (!this.searchQuery) return this.catalogItems;
-                    return this.catalogItems.filter(item => 
-                        item.name.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-                        item.code.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-                        item.desc.toLowerCase().includes(this.searchQuery.toLowerCase())
-                    );
+                    let query = this.searchQuery.trim().toLowerCase();
+                    
+                    // Specific exact or partial item number matching (e.g. typing "1", "001", "item 1")
+                    return this.catalogItems.filter(item => {
+                        let itemNum = String(item.id);
+                        let paddedNum = String(item.id).padStart(3, '0');
+                        let cleanQuery = query.replace('item', '').trim();
+
+                        return item.name.toLowerCase().includes(query) ||
+                               item.code.toLowerCase().includes(query) ||
+                               item.desc.toLowerCase().includes(query) ||
+                               itemNum === cleanQuery ||
+                               paddedNum === cleanQuery ||
+                               item.code.toLowerCase().includes(cleanQuery);
+                    });
                 },
                 init() {
                     let items = [];
