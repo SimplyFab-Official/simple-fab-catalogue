@@ -79,7 +79,7 @@
                 <div>
                     <span class="text-amber-300 text-xs font-semibold tracking-widest uppercase bg-amber-950/60 px-3.5 py-1.5 rounded-full border border-amber-500/40 shadow-sm inline-block mb-3">Masterful Craftsmanship & Bespoke Elegance</span>
                     <h2 class="font-serif text-3xl md:text-5xl font-bold text-amber-50 leading-tight">Look stunning. Feel beautiful. Be simply fabulous.</h2>
-                    <p class="text-neutral-300 text-sm md:text-base font-light italic mt-3 leading-relaxed">"Every gown in our collection undergoes meticulous artisan needlework, French lace appliqué, and precise tailoring to embody timeless sophistication."</p>
+                    <p class="text-neutral-300 text-sm md:text-base font-light italic mt-3 leading-relaxed">"Discover breathtaking designer evening gowns crafted to make every celebration truly unforgettable."</p>
                 </div>
                 <div class="w-full md:w-80 flex-shrink-0">
                     <div class="bg-neutral-950/90 p-4 rounded-2xl border border-amber-500/40 shadow-xl space-y-2">
@@ -140,7 +140,7 @@
                                 <span class="text-xs font-semibold text-neutral-300 bg-neutral-800 px-2 py-0.5 rounded shadow-sm" x-text="item.size"></span>
                             </div>
                             <h4 class="font-serif font-semibold text-lg text-amber-50 mt-1" x-text="item.name"></h4>
-                            <p class="text-xs text-neutral-400 mt-1 italic font-serif line-clamp-1" x-text="item.craftsmanshipTagline"></p>
+                            <p class="text-xs text-neutral-400 mt-1 italic font-serif line-clamp-1" x-text="item.desc"></p>
                         </div>
 
                         <div class="mt-4 pt-3 border-t border-neutral-800 flex items-center justify-between gap-2">
@@ -189,7 +189,7 @@
                                 <div>
                                     <span class="text-[10px] font-mono font-bold text-amber-400 bg-neutral-900 px-2 py-0.5 rounded border border-neutral-800" x-text="item.code"></span>
                                     <h5 class="font-serif text-sm font-semibold text-amber-50 mt-1" x-text="item.name"></h5>
-                                    <span class="text-xs text-neutral-400 italic" x-text="`Size: ${item.size} • ${item.craftsmanshipTagline}`"></span>
+                                    <span class="text-xs text-neutral-400 italic" x-text="`Size: ${item.size}`"></span>
                                 </div>
                             </div>
                             <button @click="toggleSelect(item)" class="text-neutral-500 hover:text-rose-400 p-2 transition" title="Remove">
@@ -252,17 +252,6 @@
                     </div>
                     <h3 class="font-serif text-2xl font-bold text-amber-50 mt-3" x-text="activeItem ? activeItem.name : ''"></h3>
                     <p class="text-xs text-neutral-400 mt-3 leading-relaxed" x-text="activeItem ? activeItem.desc : ''"></p>
-                    
-                    <div class="mt-4 p-4 rounded-2xl bg-neutral-950 border border-neutral-800 text-xs text-neutral-300 space-y-2.5 shadow-sm">
-                        <div class="font-semibold text-amber-300 uppercase tracking-widest text-[10px] flex items-center space-x-1.5">
-                            <svg class="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
-                            <span x-text="activeItem ? activeItem.craftsmanshipTagline : ''"></span>
-                        </div>
-                        <p class="leading-normal text-neutral-400 font-light">Created using luxury European fabrics, structured boning for a seamless silhouette, and hand-stitched beadwork designed for elite red-carpet galas, weddings, and grand celebrations.</p>
-                        <div class="pt-2 border-t border-neutral-800 text-[11px] text-amber-300 italic flex items-center space-x-1">
-                            <span>💡 Tip: Click the photo in the preview viewer to inspect intricate embroidery up close.</span>
-                        </div>
-                    </div>
 
                     <div class="mt-5 space-y-2.5 pt-4 border-t border-neutral-800 text-xs text-neutral-300">
                         <div class="flex items-center space-x-2 text-amber-300 font-medium">
@@ -301,13 +290,6 @@
                 modalOpen: false,
                 activeItem: null,
                 isZoomed: false,
-                craftsmanshipList: [
-                    "French Chantilly Lace & Hand-Beaded Crystal Bodice",
-                    "Silk Organza Draping with Structured Corsetry",
-                    "Hand-Appliquéd Floral Motifs & Cascading Train",
-                    "Mikado Silk Tailoring with Sculpted Mermaid Silhouette",
-                    "Illusion Netting with Hand-Embroidered Pearl Accents"
-                ],
                 getAssetPath(filename) {
                     const isGitHubPages = window.location.hostname.includes('github.io');
                     const basePath = isGitHubPages ? '/simple-fab-catalogue/' : './';
@@ -325,7 +307,6 @@
                         return item.name.toLowerCase().includes(query) ||
                                item.code.toLowerCase().includes(query) ||
                                item.desc.toLowerCase().includes(query) ||
-                               item.craftsmanshipTagline.toLowerCase().includes(query) ||
                                itemNum === cleanQuery ||
                                paddedNum === cleanQuery ||
                                item.code.toLowerCase().includes(cleanQuery);
@@ -339,14 +320,12 @@
 
                     for (let i = 1; i <= totalItems; i++) {
                         let padded = String(i).padStart(3, '0');
-                        let craftTag = this.craftsmanshipList[(i - 1) % this.craftsmanshipList.length];
                         items.push({
                             id: i,
                             code: `Item ${padded}`,
                             name: `Haute Couture Evening Gown ${padded}`,
                             size: `S-M`,
-                            craftsmanshipTagline: craftTag,
-                            desc: `Exquisite haute couture evening gown handcrafted from the Simple Fab 2.0 collection. Styled with ${craftTag.toLowerCase()} to ensure unmatched elegance on your special occasion.`,
+                            desc: `Exquisite haute couture evening gown handcrafted from the Simple Fab 2.0 collection. Designed for elite red-carpet galas, weddings, and grand celebrations.`,
                             imageSrc: basePath + `item-${padded}.jpg`,
                             fallbackStep: 0,
                             isMissing: false
@@ -368,7 +347,7 @@
                         item.imageSrc = basePath + `item-${paddedNum}.png`;
                     } else if (item.fallbackStep === 2) {
                         item.fallbackStep = 3;
-                        item.imageSrc = basePath + `item- ${paddedNum}.PNG`;
+                        item.imageSrc = basePath + `item-${paddedNum}.PNG`;
                     } else {
                         item.isMissing = true;
                     }
@@ -386,7 +365,7 @@
                 },
                 generateInquiryText() {
                     if (this.selectedItems.length === 0) return "No gowns selected.";
-                    let codes = this.selectedItems.map(i => `${i.code} (${i.name} - ${i.craftsmanshipTagline})`).join("\n• ");
+                    let codes = this.selectedItems.map(i => `${i.code} (${i.name})`).join("\n• ");
                     return `Hello Simple Fab! I would like to inquire about availability, sizing, and private fitting schedules for the following curated gown(s):\n\n• ${codes}\n\nPlease let me know your available schedule. Thank you so much!`;
                 },
                 sendInquiry() {
