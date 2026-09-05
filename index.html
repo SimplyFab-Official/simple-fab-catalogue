@@ -76,7 +76,7 @@
             <template x-for="item in filteredItems" :key="item.id">
                 <div class="bg-neutral-900/75 backdrop-blur-md border border-neutral-800/80 rounded-xl overflow-hidden shadow-xl flex flex-col justify-between hover:border-amber-500/50 transition duration-300 group">
                     <div class="h-80 overflow-hidden bg-neutral-950 relative cursor-pointer flex items-center justify-center" @click="openModal(item)">
-                        <img :src="item.imageSrc" :alt="item.name" class="w-full h-full object-cover object-top group-hover:scale-105 transition duration-500" loading="lazy" @error="item.isMissing = true" x-show="!item.isMissing">
+                        <img :src="item.imageSrc" :alt="item.name" class="w-full h-full object-cover object-top group-hover:scale-105 transition duration-500" loading="lazy" @error="handleImageError(item)" x-show="!item.isMissing">
                         
                         <div x-show="item.isMissing" class="absolute inset-0 bg-gradient-to-b from-neutral-900 via-neutral-950 to-neutral-900 flex flex-col items-center justify-center p-6 text-center border border-amber-500/20">
                             <div class="w-12 h-12 rounded-full bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 mb-3 shadow-inner">
@@ -131,7 +131,7 @@
                             <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                         </div>
                         <h4 class="font-serif text-2xl font-bold text-amber-200" x-text="activeItem.code"></h4>
-                        <p class="text-xs text-neutral-400 mt-2 max-w-xs">The image file for this item (<span class="font-mono text-amber-300" x-text="activeItem.imageSrc"></span>) has not been uploaded to your GitHub repository yet.</p>
+                        <p class="text-xs text-neutral-400 mt-2 max-w-xs">The image file for this item (<span class="font-mono text-amber-300" x-text="activeItem.imageSrc"></span>) has not been uploaded to your repository yet.</p>
                     </div>
                 </template>
             </div>
@@ -201,11 +201,27 @@
                             size: `S-M`,
                             desc: `Exquisite haute couture evening gown from the Simple Fab 2.0 collection`,
                             imageSrc: `item-${padded}.jpg`,
+                            fallbackStep: 0,
                             isMissing: false
                         });
                     }
                     this.catalogItems = items;
                     this.isLoaded = true;
+                },
+                handleImageError(item) {
+                    const paddedNum = String(item.id).padStart(3, '0');
+                    if (item.fallbackStep === 0) {
+                        item.fallbackStep = 1;
+                        item.imageSrc = `item-${paddedNum}.JPG`;
+                    } else if (item.fallbackStep === 1) {
+                        item.fallbackStep = 2;
+                        item.imageSrc = `item-${paddedNum}.png`;
+                    } else if (item.fallbackStep === 2) {
+                        item.fallbackStep = 3;
+                        item.imageSrc = `item-${paddedNum}.PNG`;
+                    } else {
+                        item.isMissing = true;
+                    }
                 },
                 openModal(item) {
                     this.activeItem = item;
