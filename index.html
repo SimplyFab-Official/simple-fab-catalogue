@@ -114,18 +114,20 @@
         </div>
     </main>
 
-    <div x-show="modalOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-neutral-950/80 backdrop-blur-md p-2 md:p-6" x-transition.opacity @keydown.escape.window="closeModal()">
+    <div x-show="modalOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-neutral-950/85 backdrop-blur-md p-2 md:p-6" x-transition.opacity @keydown.escape.window="closeModal()">
         <div class="relative max-w-6xl w-full h-[92vh] bg-white border border-rose-200 rounded-2xl overflow-hidden shadow-2xl flex flex-col md:flex-row" @click.away="closeModal()">
             <button @click="closeModal()" class="absolute top-4 right-4 z-20 bg-neutral-900/80 hover:bg-neutral-900 text-white p-2.5 rounded-full shadow-lg transition">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
             </button>
 
-            <div class="w-full md:w-3/5 bg-neutral-900 h-[50vh] md:h-full overflow-auto flex items-center justify-center relative p-4 select-none">
+            <div class="w-full md:w-3/5 bg-neutral-950 h-[50vh] md:h-full overflow-auto flex items-center justify-center relative p-0 select-none">
                 <template x-if="activeItem && !activeItem.isMissing">
-                    <img :src="activeItem.imageSrc" :alt="activeItem.name" class="max-w-none w-auto h-auto min-h-full object-contain cursor-zoom-in transition-transform duration-300 origin-center shadow-2xl" @click="toggleZoomState($event)">
+                    <div class="w-full h-full flex items-center justify-center overflow-auto cursor-zoom-in" @click="toggleZoomState($event)">
+                        <img :src="activeItem.imageSrc" :alt="activeItem.name" class="w-auto h-auto max-w-none max-h-none object-contain transition-transform duration-300 origin-center" :class="isZoomed ? 'scale-150 cursor-zoom-out' : 'scale-100 cursor-zoom-in'">
+                    </div>
                 </template>
                 <template x-if="activeItem && activeItem.isMissing">
-                    <div class="text-center p-8 flex flex-col items-center justify-center text-white">
+                    <div class="text-center p-8 flex flex-col items-center justify-center text-white h-full">
                         <div class="w-16 h-16 rounded-full bg-rose-500/20 border border-rose-400/30 flex items-center justify-center text-rose-400 mb-4">
                             <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                         </div>
@@ -133,8 +135,9 @@
                         <p class="text-xs text-neutral-300 mt-2 max-w-xs">The image file has not been uploaded to your repository yet.</p>
                     </div>
                 </template>
-                <div class="absolute bottom-4 left-4 bg-neutral-900/80 backdrop-blur text-white text-[11px] px-3 py-1 rounded-full border border-neutral-700 pointer-events-none shadow">
-                    💡 Click image to zoom in / out
+                <div class="absolute bottom-4 left-4 bg-neutral-950/90 backdrop-blur text-white text-[11px] px-3.5 py-1.5 rounded-full border border-neutral-700 pointer-events-none shadow-lg flex items-center space-x-1.5">
+                    <svg class="w-3.5 h-3.5 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"/></svg>
+                    <span x-text="isZoomed ? 'Click to Fit Original Size' : 'Click Photo to Zoom In (1.5x)'"></span>
                 </div>
             </div>
 
@@ -183,6 +186,7 @@
                 catalogItems: [],
                 modalOpen: false,
                 activeItem: null,
+                isZoomed: false,
                 getAssetPath(filename) {
                     const isGitHubPages = window.location.hostname.includes('github.io');
                     const basePath = isGitHubPages ? '/simple-fab-catalogue/' : './';
@@ -238,23 +242,18 @@
                 },
                 openModal(item) {
                     this.activeItem = item;
+                    this.isZoomed = false;
                     this.modalOpen = true;
                     document.body.style.overflow = 'hidden';
                 },
                 closeModal() {
                     this.modalOpen = false;
                     this.activeItem = null;
+                    this.isZoomed = false;
                     document.body.style.overflow = 'auto';
                 },
                 toggleZoomState(event) {
-                    const img = event.target;
-                    if (img.style.transform === 'scale(2)') {
-                        img.style.transform = 'scale(1)';
-                        img.style.cursor = 'zoom-in';
-                    } else {
-                        img.style.transform = 'scale(2)';
-                        img.style.cursor = 'zoom-out';
-                    }
+                    this.isZoomed = !this.isZoomed;
                 }
             }
         }
