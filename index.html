@@ -46,7 +46,7 @@
             </div>
             
             <button @click="cartOpen = true" class="relative bg-rose-500 hover:bg-rose-600 text-white px-4 py-2 rounded-full text-xs font-semibold shadow-md transition flex items-center space-x-2">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012-2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                 <span>Inquiry Cart</span>
                 <span class="absolute -top-1.5 -right-1.5 bg-neutral-900 text-white text-[10px] w-5 h-5 rounded-full flex items-center justify-center border-2 border-white font-bold" x-text="selectedItems.length"></span>
             </button>
@@ -63,7 +63,7 @@
                 <div>
                     <span class="text-rose-700 text-xs font-semibold tracking-widest uppercase bg-rose-100 px-3 py-1 rounded-full border border-rose-200 shadow-sm">Exclusive Haute Couture Gowns</span>
                     <h2 class="font-serif text-3xl md:text-5xl font-bold mt-4 mb-3 text-neutral-900 leading-tight">Step Into Timeless Elegance</h2>
-                    <p class="text-neutral-600 text-sm md:text-base font-light italic">"Select your dream gowns to your inquiry checklist, review your choices, and send an instant inquiry directly to our Facebook page!"</p>
+                    <p class="text-neutral-600 text-sm md:text-base font-light italic">"Select your favorite gowns, review your checklist just like shopping online, and send an instant auto-generated inquiry to our Facebook page!"</p>
                 </div>
                 <div class="w-full md:w-72">
                     <input type="text" x-model="searchQuery" placeholder="Search by item number or keyword..." class="w-full bg-white border border-rose-200 rounded-full px-4 py-2.5 text-sm text-neutral-800 focus:outline-none focus:border-rose-400 placeholder-neutral-400 shadow-sm">
@@ -77,7 +77,7 @@
                 <span>You have selected <strong class="underline font-bold" x-text="selectedItems.length + (selectedItems.length === 1 ? ' gown' : ' gowns')"></strong> in your inquiry checklist.</span>
             </div>
             <button @click="cartOpen = true" class="bg-white text-rose-700 hover:bg-rose-50 px-4 py-1.5 rounded-lg text-xs font-bold transition shadow-sm uppercase tracking-wider">
-                Review & Send Inquiry &rarr;
+                View Cart & Send &rarr;
             </button>
         </div>
 
@@ -127,9 +127,9 @@
                                 View & Zoom
                             </button>
                             
-                            <button @click="toggleSelect(item)" :class="isItemSelected(item) ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : 'bg-rose-50 hover:bg-rose-100 border border-rose-300 text-rose-800'" class="text-xs px-3 py-1.5 rounded-md transition font-medium shadow-sm flex items-center space-x-1.5">
+                            <button @click="toggleSelect(item)" :class="isItemSelected(item) ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : 'bg-rose-500 hover:bg-rose-600 text-white'" class="text-xs px-3.5 py-2 rounded-md transition font-semibold shadow-sm flex items-center space-x-1.5">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" :d="isItemSelected(item) ? 'M5 13l4 4L19 7' : 'M12 4v16m8-8H4'"/></svg>
-                                <span x-text="isItemSelected(item) ? 'Added to Inquiry' : 'Add to Inquiry'"></span>
+                                <span x-text="isItemSelected(item) ? 'In Cart ✓' : '+ Add to Cart'"></span>
                             </button>
                         </div>
                     </div>
@@ -144,8 +144,8 @@
                 
                 <div class="p-6 border-b border-rose-100 bg-rose-50/40 flex items-center justify-between">
                     <div>
-                        <h3 class="font-serif text-xl font-bold text-neutral-900">Your Inquiry Checklist</h3>
-                        <p class="text-xs text-neutral-500 mt-0.5">Review your chosen gowns before sending to seller.</p>
+                        <h3 class="font-serif text-xl font-bold text-neutral-900">Your Inquiry Cart</h3>
+                        <p class="text-xs text-neutral-500 mt-0.5">Review items you want to inquire about with the seller.</p>
                     </div>
                     <button @click="cartOpen = false" class="bg-white hover:bg-rose-100 text-neutral-700 p-2 rounded-full border border-rose-200 transition shadow-sm">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -155,9 +155,9 @@
                 <div class="p-6 flex-grow overflow-y-auto space-y-4">
                     <template x-if="selectedItems.length === 0">
                         <div class="text-center py-16 text-neutral-400">
-                            <svg class="w-12 h-12 mx-auto text-rose-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012-2"/></svg>
-                            <p class="font-serif text-base text-neutral-700 font-medium">No gowns selected yet.</p>
-                            <p class="text-xs text-neutral-400 mt-1 max-w-xs mx-auto">Click "Add to Inquiry" on any gown card to include it in your checklist.</p>
+                            <svg class="w-12 h-12 mx-auto text-rose-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                            <p class="font-serif text-base text-neutral-700 font-medium">Your inquiry cart is empty.</p>
+                            <p class="text-xs text-neutral-400 mt-1 max-w-xs mx-auto">Click "+ Add to Cart" on any gown card to include it in your inquiry checklist.</p>
                         </div>
                     </template>
 
@@ -171,7 +171,7 @@
                                     <span class="text-xs text-neutral-500" x-text="`Size: ${item.size}`"></span>
                                 </div>
                             </div>
-                            <button @click="toggleSelect(item)" class="text-neutral-400 hover:text-rose-600 p-2 transition">
+                            <button @click="toggleSelect(item)" class="text-neutral-400 hover:text-rose-600 p-2 transition" title="Remove">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                             </button>
                         </div>
@@ -180,13 +180,13 @@
 
                 <div class="p-6 border-t border-rose-100 bg-rose-50/40 space-y-4">
                     <div>
-                        <label class="block text-xs font-semibold text-neutral-700 uppercase tracking-wider mb-1">Auto-Generated Inquiry Message Preview:</label>
+                        <label class="block text-xs font-semibold text-neutral-700 uppercase tracking-wider mb-1">Auto-Generated Inquiry Message:</label>
                         <textarea readonly class="w-full h-28 bg-white border border-rose-200 rounded-lg p-3 text-xs text-neutral-700 focus:outline-none resize-none shadow-inner font-mono" x-text="generateInquiryText()"></textarea>
                     </div>
 
                     <div class="flex space-x-3">
                         <button @click="sendInquiry()" :disabled="selectedItems.length === 0" :class="selectedItems.length === 0 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-rose-600 shadow-lg'" class="flex-1 bg-rose-500 text-white font-semibold py-3 px-4 rounded-xl text-xs text-center transition uppercase tracking-wider flex items-center justify-center space-x-2">
-                            <span>Continue to Seller Message</span>
+                            <span>Proceed & Send to Seller</span>
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                         </button>
                     </div>
@@ -249,9 +249,9 @@
                 </div>
 
                 <div class="mt-8 pt-4 border-t border-rose-100 flex space-x-3">
-                    <button @click="toggleSelect(activeItem); closeModal();" :class="activeItem && isItemSelected(activeItem) ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : 'bg-rose-500 hover:bg-rose-600 text-white'" class="flex-1 font-semibold py-3 px-4 rounded-lg text-xs text-center transition uppercase tracking-wider shadow-lg flex items-center justify-center space-x-2">
+                    <button @click="toggleSelect(activeItem)" :class="activeItem && isItemSelected(activeItem) ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : 'bg-rose-500 hover:bg-rose-600 text-white'" class="flex-1 font-semibold py-3 px-4 rounded-lg text-xs text-center transition uppercase tracking-wider shadow-lg flex items-center justify-center space-x-2">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" :d="activeItem && isItemSelected(activeItem) ? 'M5 13l4 4L19 7' : 'M12 4v16m8-8H4'"/></svg>
-                        <span x-text="activeItem && isItemSelected(activeItem) ? 'Remove from Inquiry' : 'Add to Inquiry Checklist'"></span>
+                        <span x-text="activeItem && isItemSelected(activeItem) ? 'Remove from Cart' : 'Add to Inquiry Cart'"></span>
                     </button>
                     <button @click="closeModal()" class="bg-rose-50 hover:bg-rose-100 text-rose-800 font-medium py-3 px-4 rounded-lg text-xs transition border border-rose-200">
                         Close
