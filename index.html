@@ -291,8 +291,8 @@
     </footer>
 
     <script>
-        function catalogApp() {
-            return {
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('catalogApp', () => ({
                 isLoaded: false,
                 searchQuery: '',
                 catalogItems: [],
@@ -368,7 +368,7 @@
                         item.imageSrc = basePath + `item-${paddedNum}.png`;
                     } else if (item.fallbackStep === 2) {
                         item.fallbackStep = 3;
-                        item.imageSrc = basePath + `item-${paddedNum}.PNG`;
+                        item.imageSrc = basePath + `item- ${paddedNum}.PNG`;
                     } else {
                         item.isMissing = true;
                     }
@@ -409,8 +409,8 @@
                 toggleZoomState(event) {
                     this.isZoomed = !this.isZoomed;
                 }
-            }
-        }
+            }));
+        });
     </script>
 </body>
 </html>
