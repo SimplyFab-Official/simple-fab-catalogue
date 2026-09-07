@@ -25,7 +25,7 @@
         .floating-badge { animation: floatSlow 10s ease-in-out infinite; }
     </style>
 </head>
-<body class="bg-neutral-900 text-neutral-100 antialiased min-h-full flex flex-col justify-between relative selection:bg-rose-500 selection:text-white" x-data="catalogApp()">
+<body class="bg-neutral-900 text-neutral-100 antialiased min-h-full flex flex-col justify-between relative selection:bg-rose-500 selection:text-white" x-data="catalogApp()" @scroll.window="checkScroll">
 
     <div class="fixed inset-0 z-[-1] overflow-hidden pointer-events-none select-none">
         <img :src="getAssetPath('image_61525a.jpg')" alt="Theme Background" class="w-full h-full object-cover opacity-30 filter blur-[2px] scale-105" @error="$el.src='https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=1600&auto=format&fit=crop&q=80'">
@@ -84,8 +84,8 @@
                 <div class="w-full md:w-80 flex-shrink-0">
                     <div class="bg-neutral-950/90 p-4 rounded-2xl border border-amber-500/40 shadow-xl space-y-2">
                         <label class="block text-xs font-semibold text-amber-300 uppercase tracking-wider">Quick Search / Item ID</label>
-                        <input type="text" x-model="searchQuery" placeholder="e.g. 001, French Lace..." class="w-full bg-neutral-900 border border-amber-500/30 rounded-xl px-4 py-2.5 text-sm text-neutral-100 focus:outline-none focus:border-amber-400 placeholder-neutral-500 shadow-inner">
-                        <p class="text-[10px] text-neutral-400 italic text-right">Type any item number to find instantly.</p>
+                        <input type="text" x-model="searchQuery" placeholder="e.g. 001, 250, 300..." class="w-full bg-neutral-900 border border-amber-500/30 rounded-xl px-4 py-2.5 text-sm text-neutral-100 focus:outline-none focus:border-amber-400 placeholder-neutral-500 shadow-inner">
+                        <p class="text-[10px] text-neutral-400 italic text-right">Type any item number to instantly query or load higher items.</p>
                     </div>
                 </div>
             </div>
@@ -107,13 +107,13 @@
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
             <h3 class="font-serif text-xl font-medium text-amber-100">Curating Collection</h3>
-            <p class="text-xs text-neutral-400 mt-2">Preparing exquisite catalog displays...</p>
+            <p class="text-xs text-neutral-400 mt-2">Preparing infinite catalog displays...</p>
         </div>
 
         <div x-show="isLoaded && filteredItems.length === 0" class="border border-dashed border-amber-500/40 rounded-3xl p-12 text-center bg-neutral-900/70 backdrop-blur-sm max-w-md mx-auto shadow-sm my-12">
             <svg class="w-10 h-10 mx-auto text-amber-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
             <h4 class="font-serif text-lg font-medium text-amber-100">No Gown Found</h4>
-            <p class="text-xs text-neutral-400 mt-1">No items matched your search query. Try entering item numbers like "001" or keywords.</p>
+            <p class="text-xs text-neutral-400 mt-1">No items matched your search query. Try entering higher item numbers or keywords.</p>
         </div>
 
         <div x-show="isLoaded && filteredItems.length > 0" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
@@ -156,6 +156,13 @@
                     </div>
                 </div>
             </template>
+        </div>
+
+        <!-- Infinite Load Trigger indicator -->
+        <div x-show="isLoaded && visibleCount < maxAllowedItems && !searchQuery" class="text-center py-8">
+            <button @click="loadMore()" class="bg-neutral-800 hover:bg-neutral-700 text-amber-300 border border-amber-500/30 px-6 py-2.5 rounded-full text-xs font-semibold tracking-wider uppercase transition shadow-md">
+                Load More Gowns...
+            </button>
         </div>
     </main>
 
@@ -290,19 +297,28 @@
                 modalOpen: false,
                 activeItem: null,
                 isZoomed: false,
+                visibleCount: 24, // Start by showing 24 items
+                maxAllowedItems: 1000, // Supports up to 1000 items dynamically as you upload them
                 getAssetPath(filename) {
                     const isGitHubPages = window.location.hostname.includes('github.io');
                     const basePath = isGitHubPages ? '/simple-fab-catalogue/' : './';
                     return basePath + filename;
                 },
                 get filteredItems() {
-                    if (!this.searchQuery) return this.catalogItems;
+                    let items = this.catalogItems.slice(0, this.visibleCount);
+                    
+                    if (!this.searchQuery) return items;
                     let query = this.searchQuery.trim().toLowerCase();
                     
+                    let cleanQuery = query.replace('item', '').trim();
+                    let searchedNum = parseInt(cleanQuery, 10);
+                    if (!isNaN(searchedNum) && searchedNum > this.visibleCount && searchedNum <= this.maxAllowedItems) {
+                        this.visibleCount = searchedNum + 4; // Auto-reveal up to searched number
+                    }
+
                     return this.catalogItems.filter(item => {
                         let itemNum = String(item.id);
                         let paddedNum = String(item.id).padStart(3, '0');
-                        let cleanQuery = query.replace('item', '').trim();
 
                         return item.name.toLowerCase().includes(query) ||
                                item.code.toLowerCase().includes(query) ||
@@ -314,11 +330,10 @@
                 },
                 init() {
                     let items = [];
-                    const totalItems = 250; 
                     const isGitHubPages = window.location.hostname.includes('github.io');
                     const basePath = isGitHubPages ? '/simple-fab-catalogue/' : './';
 
-                    for (let i = 1; i <= totalItems; i++) {
+                    for (let i = 1; i <= this.maxAllowedItems; i++) {
                         let padded = String(i).padStart(3, '0');
                         items.push({
                             id: i,
@@ -333,6 +348,18 @@
                     }
                     this.catalogItems = items;
                     this.isLoaded = true;
+                },
+                loadMore() {
+                    if (this.visibleCount < this.maxAllowedItems) {
+                        this.visibleCount += 24;
+                    }
+                },
+                checkScroll() {
+                    if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 500) {
+                        if (!this.searchQuery && this.visibleCount < this.maxAllowedItems) {
+                            this.loadMore();
+                        }
+                    }
                 },
                 handleImageError(item) {
                     const paddedNum = String(item.id).padStart(3, '0');
