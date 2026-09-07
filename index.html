@@ -339,17 +339,26 @@
                     const isGitHubPages = window.location.hostname.includes('github.io');
                     const basePath = isGitHubPages ? '/simple-fab-catalogue/' : './';
 
-                    if (item.fallbackStep === 0) {
-                        item.fallbackStep = 1;
-                        item.imageSrc = basePath + `item-${paddedNum}.JPG`;
-                    } else if (item.fallbackStep === 1) {
-                        item.fallbackStep = 2;
-                        item.imageSrc = basePath + `item-${paddedNum}.png`;
-                    } else if (item.fallbackStep === 2) {
-                        item.fallbackStep = 3;
-                        item.imageSrc = basePath + `item-${paddedNum}.PNG`;
-                    } else {
-                        item.isMissing = true;
+                    item.fallbackStep++;
+                    switch (item.fallbackStep) {
+                        case 1:
+                            item.imageSrc = basePath + `item-${paddedNum}.JPG`;
+                            break;
+                        case 2:
+                            item.imageSrc = basePath + `item-${paddedNum}.jpeg`;
+                            break;
+                        case 3:
+                            item.imageSrc = basePath + `item-${paddedNum}.JPEG`;
+                            break;
+                        case 4:
+                            item.imageSrc = basePath + `item-${paddedNum}.png`;
+                            break;
+                        case 5:
+                            item.imageSrc = basePath + `item-${paddedNum}.PNG`;
+                            break;
+                        default:
+                            item.isMissing = true;
+                            break;
                     }
                 },
                 isItemSelected(item) {
