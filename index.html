@@ -25,7 +25,7 @@
         .floating-badge { animation: floatSlow 10s ease-in-out infinite; }
     </style>
 </head>
-<body class="bg-neutral-900 text-neutral-100 antialiased min-h-full flex flex-col justify-between relative selection:bg-rose-500 selection:text-white" x-data="catalogApp()" @scroll.window="checkScroll">
+<body class="bg-neutral-900 text-neutral-100 antialiased min-h-full flex flex-col justify-between relative selection:bg-rose-500 selection:text-white" x-data="catalogApp()">
 
     <div class="fixed inset-0 z-[-1] overflow-hidden pointer-events-none select-none">
         <img :src="getAssetPath('image_61525a.jpg')" alt="Theme Background" class="w-full h-full object-cover opacity-30 filter blur-[2px] scale-105" @error="$el.src='https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=1600&auto=format&fit=crop&q=80'">
@@ -120,6 +120,7 @@
             <template x-for="item in filteredItems" :key="item.id">
                 <div class="bg-neutral-900/95 backdrop-blur-md border border-neutral-800 rounded-2xl overflow-hidden shadow-xl flex flex-col justify-between hover:border-amber-500/60 hover:shadow-2xl transition duration-300 group">
                     <div class="h-72 overflow-hidden bg-neutral-950 relative cursor-pointer flex items-center justify-center p-3" @click="openModal(item)">
+                        <!-- Display image normally; if it errors out, trigger fallback sequence or show placeholder slot -->
                         <img :src="item.imageSrc" :alt="item.name" loading="lazy" class="w-full h-full object-cover object-center group-hover:scale-105 transition duration-500 rounded-lg shadow-sm" @error="handleImageError(item)" x-show="!item.isMissing">
                         
                         <div x-show="item.isMissing" class="absolute inset-0 bg-gradient-to-br from-neutral-900 to-neutral-950 flex flex-col items-center justify-center p-6 text-center border border-neutral-800">
@@ -330,6 +331,7 @@
 
                     for (let i = 1; i <= this.maxAllowedItems; i++) {
                         let padded = String(i).padStart(3, '0');
+                        // Smart extension check: uses lowercase jpg as default first choice
                         let defaultFilename = (i >= 161 && i <= 174) ? `Item-${padded}.png` : `item-${padded}.jpg`;
                         items.push({
                             id: i,
@@ -338,17 +340,41 @@
                             size: `S-M`,
                             desc: `Exquisite haute couture evening gown handcrafted from the Simple Fab 2.0 collection. Designed for elite red-carpet galas, weddings, and grand celebrations.`,
                             imageSrc: basePath + defaultFilename,
+                            fallbackStep: 0,
                             isMissing: false
                         });
                     }
                     this.catalogItems = items;
                     this.isLoaded = true;
                 },
-                checkScroll() {
-                    // Disabled infinite loading beyond the 200 hard cap
-                },
                 handleImageError(item) {
-                    item.isMissing = true;
+                    const id = item.id;
+                    const paddedNum = String(id).padStart(3, '0');
+                    const isGitHubPages = window.location.hostname.includes('github.io');
+                    const basePath = isGitHubPages ? '/simple-fab-catalogue/' : './';
+
+                    item.fallbackStep++;
+                    // Fallback sequence tries alternative formats (.JPG, .png, .PNG, .jpeg) before showing placeholder
+                    switch (item.fallbackStep) {
+                        case 1:
+                            item.imageSrc = basePath + `Item-${paddedNum}.JPG`;
+                            break;
+                        case 2:
+                            item.imageSrc = basePath + `Item-${paddedNum}.png`;
+                            break;
+                        case 3:
+                            item.imageSrc = basePath + `Item-${paddedNum}.PNG`;
+                            break;
+                        case 4:
+                            item.imageSrc = basePath + `item-${paddedNum}.jpeg`;
+                            break;
+                        case 5:
+                            item.imageSrc = basePath + `item-${paddedNum}.JPG`;
+                            break;
+                        default:
+                            item.isMissing = true;
+                            break;
+                    }
                 },
                 isItemSelected(item) {
                     return this.selectedItems.some(i => i.id === item.id);
