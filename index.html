@@ -31,10 +31,10 @@
         <img :src="getAssetPath('image_61525a.jpg')" alt="Theme Background" class="w-full h-full object-cover opacity-30 filter blur-[2px] scale-105" @error="$el.src='https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=1600&auto=format&fit=crop&q=80'">
         
         <div class="absolute top-20 left-[4%] w-44 h-60 rounded-2xl overflow-hidden opacity-20 filter blur-[0.5px] rotate-[-4deg] floating-badge shadow-2xl border border-amber-300/40 bg-neutral-950/40">
-            <img :src="getAssetPath('item-001.jpg')" class="w-full h-full object-cover opacity-80" @error="$el.src='https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=300&auto=format&fit=crop&q=80'">
+            <img :src="getAssetPath('item-001.png')" class="w-full h-full object-cover opacity-80" @error="$el.src='https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=300&auto=format&fit=crop&q=80'">
         </div>
         <div class="absolute top-32 right-[5%] w-48 h-64 rounded-2xl overflow-hidden opacity-20 filter blur-[0.5px] rotate-[5deg] floating-badge shadow-2xl border border-amber-300/40 bg-neutral-950/40" style="animation-delay: 3s;">
-            <img :src="getAssetPath('item-002.jpg')" class="w-full h-full object-cover opacity-80" @error="$el.src='https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=300&auto=format&fit=crop&q=80'">
+            <img :src="getAssetPath('item-002.png')" class="w-full h-full object-cover opacity-80" @error="$el.src='https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=300&auto=format&fit=crop&q=80'">
         </div>
 
         <div class="absolute inset-0 bg-gradient-to-t from-neutral-950/95 via-neutral-900/85 to-neutral-950/70"></div>
@@ -296,7 +296,6 @@
                     const protocol = window.location.protocol;
                     const hostname = window.location.hostname;
 
-                    // If testing locally via file:// protocol, fallback gracefully to prevent security blocks
                     if (protocol === 'file:') {
                         return filename; 
                     }
@@ -335,7 +334,8 @@
                     let items = [];
                     for (let i = 1; i <= this.maxAllowedItems; i++) {
                         let padded = String(i).padStart(3, '0');
-                        let defaultFilename = (i >= 161 && i <= 174) ? `Item-${padded}.png` : `item-${padded}.jpg`;
+                        // Default to .png extension matching your actual repository files
+                        let defaultFilename = `item-${padded}.png`;
                         items.push({
                             id: i,
                             code: `Item ${padded}`,
@@ -343,6 +343,7 @@
                             size: `S-M`,
                             desc: `Exquisite haute couture evening gown handcrafted from the Simple Fab 2.0 collection. Designed for elite red-carpet galas, weddings, and grand celebrations.`,
                             imageSrc: this.getAssetPath(defaultFilename),
+                            fallbackStep: 0,
                             isMissing: false
                         });
                     }
@@ -350,8 +351,25 @@
                     this.isLoaded = true;
                 },
                 handleImageError(item) {
-                    // Instantly switch to placeholder slot on missing local/remote image without multi-retry looping spam
-                    item.isMissing = true;
+                    const id = item.id;
+                    const paddedNum = String(id).padStart(3, '0');
+
+                    item.fallbackStep++;
+                    // Fallback sequence handles capitalization or alternative extensions (.JPG, .jpg) if needed
+                    switch (item.fallbackStep) {
+                        case 1:
+                            item.imageSrc = this.getAssetPath(`Item-${paddedNum}.png`);
+                            break;
+                        case 2:
+                            item.imageSrc = this.getAssetPath(`item-${paddedNum}.jpg`);
+                            break;
+                        case 3:
+                            item.imageSrc = this.getAssetPath(`Item-${paddedNum}.JPG`);
+                            break;
+                        default:
+                            item.isMissing = true;
+                            break;
+                    }
                 },
                 isItemSelected(item) {
                     return this.selectedItems.some(i => i.id === item.id);
