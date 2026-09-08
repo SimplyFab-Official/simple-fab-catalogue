@@ -296,7 +296,7 @@
                 modalOpen: false,
                 activeItem: null,
                 isZoomed: false,
-                visibleCount: 200, // Increased initial visible count to safely include 161-174 without requiring manual scrolling or searching
+                visibleCount: 200,
                 maxAllowedItems: 1000,
                 getAssetPath(filename) {
                     const isGitHubPages = window.location.hostname.includes('github.io');
@@ -361,7 +361,8 @@
                     }
                 },
                 handleImageError(item) {
-                    const paddedNum = String(item.id).padStart(3, '0');
+                    const id = item.id;
+                    const paddedNum = String(id).padStart(3, '0');
                     const isGitHubPages = window.location.hostname.includes('github.io');
                     const basePath = isGitHubPages ? '/simple-fab-catalogue/' : './';
 
@@ -381,6 +382,17 @@
                             break;
                         case 5:
                             item.imageSrc = basePath + `item-${paddedNum}.PNG`;
+                            break;
+                        case 6:
+                            // Check 'images/' subfolder with lowercase .jpg
+                            item.imageSrc = basePath + `images/item-${paddedNum}.jpg`;
+                            break;
+                        case 7:
+                            // Check without hyphen format (e.g. item161.jpg)
+                            item.imageSrc = basePath + `item${paddedNum}.jpg`;
+                            break;
+                        case 8:
+                            item.imageSrc = basePath + `images/item${paddedNum}.jpg`;
                             break;
                         default:
                             item.isMissing = true;
