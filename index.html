@@ -120,7 +120,6 @@
             <template x-for="item in filteredItems" :key="item.id">
                 <div class="bg-neutral-900/95 backdrop-blur-md border border-neutral-800 rounded-2xl overflow-hidden shadow-xl flex flex-col justify-between hover:border-amber-500/60 hover:shadow-2xl transition duration-300 group">
                     <div class="h-72 overflow-hidden bg-neutral-950 relative cursor-pointer flex items-center justify-center p-3" @click="openModal(item)">
-                        <!-- Display image normally; if it errors out, trigger fallback sequence or show placeholder slot -->
                         <img :src="item.imageSrc" :alt="item.name" loading="lazy" class="w-full h-full object-cover object-center group-hover:scale-105 transition duration-500 rounded-lg shadow-sm" @error="handleImageError(item)" x-show="!item.isMissing">
                         
                         <div x-show="item.isMissing" class="absolute inset-0 bg-gradient-to-br from-neutral-900 to-neutral-950 flex flex-col items-center justify-center p-6 text-center border border-neutral-800">
@@ -294,9 +293,12 @@
                 visibleCount: 200,
                 maxAllowedItems: 200,
                 getAssetPath(filename) {
-                    const isGitHubPages = window.location.hostname.includes('github.io');
-                    const basePath = isGitHubPages ? '/simple-fab-catalogue/' : './';
-                    return basePath + filename;
+                    const host = window.location.hostname;
+                    // Automatically support GitHub Pages repository subpath or local root
+                    if (host.includes('github.io')) {
+                        return '/simple-fab-catalogue/' + filename;
+                    }
+                    return './' + filename;
                 },
                 get filteredItems() {
                     let items = this.catalogItems.slice(0, this.visibleCount);
@@ -326,12 +328,8 @@
                 },
                 init() {
                     let items = [];
-                    const isGitHubPages = window.location.hostname.includes('github.io');
-                    const basePath = isGitHubPages ? '/simple-fab-catalogue/' : './';
-
                     for (let i = 1; i <= this.maxAllowedItems; i++) {
                         let padded = String(i).padStart(3, '0');
-                        // Smart extension check: uses lowercase jpg as default first choice
                         let defaultFilename = (i >= 161 && i <= 174) ? `Item-${padded}.png` : `item-${padded}.jpg`;
                         items.push({
                             id: i,
@@ -339,7 +337,7 @@
                             name: `Haute Couture Evening Gown ${padded}`,
                             size: `S-M`,
                             desc: `Exquisite haute couture evening gown handcrafted from the Simple Fab 2.0 collection. Designed for elite red-carpet galas, weddings, and grand celebrations.`,
-                            imageSrc: basePath + defaultFilename,
+                            imageSrc: this.getAssetPath(defaultFilename),
                             fallbackStep: 0,
                             isMissing: false
                         });
@@ -350,26 +348,23 @@
                 handleImageError(item) {
                     const id = item.id;
                     const paddedNum = String(id).padStart(3, '0');
-                    const isGitHubPages = window.location.hostname.includes('github.io');
-                    const basePath = isGitHubPages ? '/simple-fab-catalogue/' : './';
 
                     item.fallbackStep++;
-                    // Fallback sequence tries alternative formats (.JPG, .png, .PNG, .jpeg) before showing placeholder
                     switch (item.fallbackStep) {
                         case 1:
-                            item.imageSrc = basePath + `Item-${paddedNum}.JPG`;
+                            item.imageSrc = this.getAssetPath(`Item-${paddedNum}.JPG`);
                             break;
                         case 2:
-                            item.imageSrc = basePath + `Item-${paddedNum}.png`;
+                            item.imageSrc = this.getAssetPath(`Item-${paddedNum}.png`);
                             break;
                         case 3:
-                            item.imageSrc = basePath + `Item-${paddedNum}.PNG`;
+                            item.imageSrc = this.getAssetPath(`Item-${paddedNum}.PNG`);
                             break;
                         case 4:
-                            item.imageSrc = basePath + `item-${paddedNum}.jpeg`;
+                            item.imageSrc = this.getAssetPath(`item-${paddedNum}.jpeg`);
                             break;
                         case 5:
-                            item.imageSrc = basePath + `item-${paddedNum}.JPG`;
+                            item.imageSrc = this.getAssetPath(`item-${paddedNum}.JPG`);
                             break;
                         default:
                             item.isMissing = true;
