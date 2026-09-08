@@ -334,13 +334,15 @@
 
                     for (let i = 1; i <= this.maxAllowedItems; i++) {
                         let padded = String(i).padStart(3, '0');
+                        // For items 161 to 174, default to capital 'Item-###.png' to align with repository file names
+                        let defaultFilename = (i >= 161 && i <= 174) ? `Item-${padded}.png` : `item-${padded}.jpg`;
                         items.push({
                             id: i,
                             code: `Item ${padded}`,
                             name: `Haute Couture Evening Gown ${padded}`,
                             size: `S-M`,
                             desc: `Exquisite haute couture evening gown handcrafted from the Simple Fab 2.0 collection. Designed for elite red-carpet galas, weddings, and grand celebrations.`,
-                            imageSrc: basePath + `item-${padded}.jpg`,
+                            imageSrc: basePath + defaultFilename,
                             fallbackStep: 0,
                             isMissing: false
                         });
@@ -369,30 +371,22 @@
                     item.fallbackStep++;
                     switch (item.fallbackStep) {
                         case 1:
-                            item.imageSrc = basePath + `item-${paddedNum}.JPG`;
+                            item.imageSrc = basePath + `Item-${paddedNum}.png`;
                             break;
                         case 2:
-                            item.imageSrc = basePath + `item-${paddedNum}.jpeg`;
+                            item.imageSrc = basePath + `Item-${paddedNum}.JPG`;
                             break;
                         case 3:
-                            item.imageSrc = basePath + `item-${paddedNum}.JPEG`;
+                            item.imageSrc = basePath + `item-${paddedNum}.jpg`;
                             break;
                         case 4:
                             item.imageSrc = basePath + `item-${paddedNum}.png`;
                             break;
                         case 5:
-                            item.imageSrc = basePath + `item-${paddedNum}.PNG`;
+                            item.imageSrc = basePath + `item-${paddedNum}.JPG`;
                             break;
                         case 6:
-                            // Check 'images/' subfolder with lowercase .jpg
-                            item.imageSrc = basePath + `images/item-${paddedNum}.jpg`;
-                            break;
-                        case 7:
-                            // Check without hyphen format (e.g. item161.jpg)
-                            item.imageSrc = basePath + `item${paddedNum}.jpg`;
-                            break;
-                        case 8:
-                            item.imageSrc = basePath + `images/item${paddedNum}.jpg`;
+                            item.imageSrc = basePath + `item-${paddedNum}.jpeg`;
                             break;
                         default:
                             item.isMissing = true;
