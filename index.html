@@ -83,8 +83,8 @@
                 </div>
                 <div class="w-full md:w-80 flex-shrink-0">
                     <div class="bg-neutral-950/90 p-4 rounded-2xl border border-amber-500/40 shadow-xl space-y-2">
-                        <label class="block text-xs font-semibold text-amber-300 uppercase tracking-wider">Quick Search / Item ID</label>
-                        <input type="text" x-model="searchQuery" placeholder="e.g. 001, 150, 200..." class="w-full bg-neutral-900 border border-amber-500/30 rounded-xl px-4 py-2.5 text-sm text-neutral-100 focus:outline-none focus:border-amber-400 placeholder-neutral-500 shadow-inner">
+                        <label class="block text-xs font-semibold text-amber-300 uppercase tracking-wider" for="quick-search-input">Quick Search / Item ID</label>
+                        <input id="quick-search-input" type="text" x-model="searchQuery" placeholder="e.g. 001, 150, 200..." class="w-full bg-neutral-900 border border-amber-500/30 rounded-xl px-4 py-2.5 text-sm text-neutral-100 focus:outline-none focus:border-amber-400 placeholder-neutral-500 shadow-inner">
                         <p class="text-[10px] text-neutral-400 italic text-right">Type any item number up to 200 to instantly query.</p>
                     </div>
                 </div>
@@ -120,7 +120,7 @@
             <template x-for="item in filteredItems" :key="item.id">
                 <div class="bg-neutral-900/95 backdrop-blur-md border border-neutral-800 rounded-2xl overflow-hidden shadow-xl flex flex-col justify-between hover:border-amber-500/60 hover:shadow-2xl transition duration-300 group">
                     <div class="h-72 overflow-hidden bg-neutral-950 relative cursor-pointer flex items-center justify-center p-3" @click="openModal(item)">
-                        <img :src="item.imageSrc" :alt="item.name" loading="lazy" class="w-full h-full object-cover object-center group-hover:scale-105 transition duration-500 rounded-lg shadow-sm" @error="handleImageError(item, $event)" x-show="!item.isMissing">
+                        <img :src="item.imageSrc" :alt="item.name" loading="lazy" class="w-full h-full object-cover object-center group-hover:scale-105 transition duration-500 rounded-lg shadow-sm" @error="handleImageError(item)" x-show="!item.isMissing">
                         
                         <div x-show="item.isMissing" class="absolute inset-0 bg-gradient-to-br from-neutral-900 to-neutral-950 flex flex-col items-center justify-center p-6 text-center border border-neutral-800">
                             <div class="w-12 h-12 rounded-full bg-neutral-800 border border-amber-500/30 flex items-center justify-center text-amber-400 mb-3 shadow-sm">
@@ -201,8 +201,8 @@
 
                 <div class="p-6 border-t border-neutral-800 bg-neutral-950 space-y-4">
                     <div>
-                        <label class="block text-xs font-semibold text-amber-300 uppercase tracking-wider mb-1">Auto-Generated Inquiry Message:</label>
-                        <textarea readonly class="w-full h-32 bg-neutral-900 border border-neutral-800 rounded-xl p-3 text-xs text-neutral-200 focus:outline-none resize-none shadow-inner font-mono" x-text="generateInquiryText()"></textarea>
+                        <label class="block text-xs font-semibold text-amber-300 uppercase tracking-wider mb-1" for="inquiry-textarea">Auto-Generated Inquiry Message:</label>
+                        <textarea id="inquiry-textarea" readonly class="w-full h-32 bg-neutral-900 border border-neutral-800 rounded-xl p-3 text-xs text-neutral-200 focus:outline-none resize-none shadow-inner font-mono" x-text="generateInquiryText()"></textarea>
                     </div>
 
                     <div class="flex space-x-3">
@@ -293,9 +293,14 @@
                 visibleCount: 200,
                 maxAllowedItems: 200,
                 getAssetPath(filename) {
-                    // Absolute robust repository path resolution for GitHub Pages vs Localhost
-                    const pathname = window.location.pathname;
-                    if (pathname.includes('/simple-fab-catalogue/')) {
+                    const protocol = window.location.protocol;
+                    const hostname = window.location.hostname;
+
+                    // If testing locally via file:// protocol, fallback gracefully to prevent security blocks
+                    if (protocol === 'file:') {
+                        return filename; 
+                    }
+                    if (hostname.includes('github.io')) {
                         return '/simple-fab-catalogue/' + filename;
                     }
                     return './' + filename;
@@ -338,38 +343,15 @@
                             size: `S-M`,
                             desc: `Exquisite haute couture evening gown handcrafted from the Simple Fab 2.0 collection. Designed for elite red-carpet galas, weddings, and grand celebrations.`,
                             imageSrc: this.getAssetPath(defaultFilename),
-                            fallbackStep: 0,
                             isMissing: false
                         });
                     }
                     this.catalogItems = items;
                     this.isLoaded = true;
                 },
-                handleImageError(item, event) {
-                    const id = item.id;
-                    const paddedNum = String(id).padStart(3, '0');
-
-                    item.fallbackStep++;
-                    switch (item.fallbackStep) {
-                        case 1:
-                            item.imageSrc = this.getAssetPath(`Item-${paddedNum}.JPG`);
-                            break;
-                        case 2:
-                            item.imageSrc = this.getAssetPath(`Item-${paddedNum}.png`);
-                            break;
-                        case 3:
-                            item.imageSrc = this.getAssetPath(`Item-${paddedNum}.PNG`);
-                            break;
-                        case 4:
-                            item.imageSrc = this.getAssetPath(`item-${paddedNum}.jpeg`);
-                            break;
-                        case 5:
-                            item.imageSrc = this.getAssetPath(`item-${paddedNum}.JPG`);
-                            break;
-                        default:
-                            item.isMissing = true;
-                            break;
-                    }
+                handleImageError(item) {
+                    // Instantly switch to placeholder slot on missing local/remote image without multi-retry looping spam
+                    item.isMissing = true;
                 },
                 isItemSelected(item) {
                     return this.selectedItems.some(i => i.id === item.id);
