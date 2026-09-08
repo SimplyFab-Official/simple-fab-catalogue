@@ -334,8 +334,7 @@
                     let items = [];
                     for (let i = 1; i <= this.maxAllowedItems; i++) {
                         let padded = String(i).padStart(3, '0');
-                        // Default to .png extension matching your actual repository files
-                        let defaultFilename = `item-${padded}.png`;
+                        let defaultFilename = (i >= 161 && i <= 174) ? `Item-${padded}.png` : `item-${padded}.png`;
                         items.push({
                             id: i,
                             code: `Item ${padded}`,
@@ -355,7 +354,6 @@
                     const paddedNum = String(id).padStart(3, '0');
 
                     item.fallbackStep++;
-                    // Fallback sequence handles capitalization or alternative extensions (.JPG, .jpg) if needed
                     switch (item.fallbackStep) {
                         case 1:
                             item.imageSrc = this.getAssetPath(`Item-${paddedNum}.png`);
