@@ -48,7 +48,7 @@
 
     <header class="border-b border-neutral-800 bg-neutral-900/90 backdrop-blur-md sticky top-0 z-40 px-6 py-4 flex items-center justify-between shadow-lg">
         <div class="flex items-center space-x-3">
-            <img :src="getAssetPath('image_61525a.jpg')" alt="Logo" class="w-11 h-11 rounded-full object-cover border-2 border-amber-400/60 shadow-md" @error="$el.src='https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=100&auto=format&fit=crop&q=80'">
+            <img :src="getAssetPath('image_61525a.jpg')" alt="Logo" class="w-11 h-11 rounded-full object-cover border-2 border-amber-400/60 shadow-md" @error="handleLogoError($event)">
             <div>
                 <h1 class="font-serif text-xl font-bold tracking-wide text-amber-100">Simple Fab 2.0</h1>
                 <p class="text-[10px] uppercase tracking-widest text-amber-400 font-semibold">Haute Couture Collection</p>
@@ -303,6 +303,10 @@
                         return '/simple-fab-catalogue/' + filename;
                     }
                     return './' + filename;
+                },
+                handleLogoError(event) {
+                    // Safe fallback for header logo if image_61525a.jpg is missing
+                    event.target.src = 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=100&auto=format&fit=crop&q=80';
                 },
                 get filteredItems() {
                     let items = this.catalogItems.slice(0, this.visibleCount);
