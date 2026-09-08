@@ -84,7 +84,7 @@
                 <div class="w-full md:w-80 flex-shrink-0">
                     <div class="bg-neutral-950/90 p-4 rounded-2xl border border-amber-500/40 shadow-xl space-y-2">
                         <label class="block text-xs font-semibold text-amber-300 uppercase tracking-wider">Quick Search / Item ID</label>
-                        <input type="text" x-model="searchQuery" placeholder="e.g. 001, 250, 300..." class="w-full bg-neutral-900 border border-amber-500/30 rounded-xl px-4 py-2.5 text-sm text-neutral-100 focus:outline-none focus:border-amber-400 placeholder-neutral-500 shadow-inner">
+                        <input type="text" x-model="searchQuery" placeholder="e.g. 001, 165, 300..." class="w-full bg-neutral-900 border border-amber-500/30 rounded-xl px-4 py-2.5 text-sm text-neutral-100 focus:outline-none focus:border-amber-400 placeholder-neutral-500 shadow-inner">
                         <p class="text-[10px] text-neutral-400 italic text-right">Type any item number to instantly query or load higher items.</p>
                     </div>
                 </div>
@@ -158,7 +158,6 @@
             </template>
         </div>
 
-        <!-- Infinite Load Trigger indicator -->
         <div x-show="isLoaded && visibleCount < maxAllowedItems && !searchQuery" class="text-center py-8">
             <button @click="loadMore()" class="bg-neutral-800 hover:bg-neutral-700 text-amber-300 border border-amber-500/30 px-6 py-2.5 rounded-full text-xs font-semibold tracking-wider uppercase transition shadow-md">
                 Load More Gowns...
@@ -297,8 +296,8 @@
                 modalOpen: false,
                 activeItem: null,
                 isZoomed: false,
-                visibleCount: 24, // Start by showing 24 items
-                maxAllowedItems: 1000, // Supports up to 1000 items dynamically as you upload them
+                visibleCount: 200, // Increased initial visible count to safely include 161-174 without requiring manual scrolling or searching
+                maxAllowedItems: 1000,
                 getAssetPath(filename) {
                     const isGitHubPages = window.location.hostname.includes('github.io');
                     const basePath = isGitHubPages ? '/simple-fab-catalogue/' : './';
@@ -313,7 +312,7 @@
                     let cleanQuery = query.replace('item', '').trim();
                     let searchedNum = parseInt(cleanQuery, 10);
                     if (!isNaN(searchedNum) && searchedNum > this.visibleCount && searchedNum <= this.maxAllowedItems) {
-                        this.visibleCount = searchedNum + 4; // Auto-reveal up to searched number
+                        this.visibleCount = searchedNum + 10;
                     }
 
                     return this.catalogItems.filter(item => {
@@ -351,7 +350,7 @@
                 },
                 loadMore() {
                     if (this.visibleCount < this.maxAllowedItems) {
-                        this.visibleCount += 24;
+                        this.visibleCount += 50;
                     }
                 },
                 checkScroll() {
